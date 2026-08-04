@@ -1,17 +1,17 @@
-# Harness skills
+# Skills
 
-Cross-harness CLI runners for Claude Code, Codex, Cursor, and OpenCode, plus the
-`let-them-cook` post-grill workflow.
+Reusable skills for Claude Code, Codex, Cursor, and OpenCode, including
+cross-harness CLI runners, the `let-them-cook` post-grill workflow, and `/bruh`.
 
 ## Install with the skills CLI
 
-Install a single harness globally:
+Install a single skill globally:
 
 ```bash
-npx skills add luth-v/skills --skill claude -g -y
+npx skills add luth-v/skills --skill bruh -g -y
 ```
 
-Install all harness skills globally:
+Install all skills globally:
 
 ```bash
 npx skills add luth-v/skills --all -g
@@ -24,20 +24,25 @@ Available skills:
 - `cursor`
 - `opencode`
 - `let-them-cook`
+- `bruh`
+- `wtf`
 
 Each CLI harness skill is self-contained and requires its corresponding CLI to be
 installed and authenticated. `let-them-cook` orchestrates the harness skills, so
 install the full collection before using it; it additionally expects `/handoff` and
-`thermo-nuclear-code-quality-review`.
+`thermo-nuclear-code-quality-review`. `/bruh` is a standalone plain-language
+restatement skill.
 
-## Install from a checkout
+## Install from a local checkout
 
-For a symlinked development installation that updates with the checkout:
+Install `/bruh` from this checkout:
 
 ```bash
-git clone https://github.com/luth-v/skills.git
-./skills/harness/install.sh
+npx skills add . --skill bruh -g -y
 ```
 
-See [harness/README.md](harness/README.md) for the layout, migration behavior, and
-maintenance workflow.
+Install all skills from this checkout:
+
+```bash
+npx skills add . --all -g
+```

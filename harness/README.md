@@ -2,53 +2,28 @@
 
 Agent install kit: cross-harness runners (`claude` / `codex` / `cursor` / `opencode`), shared live-log helpers, and `/let-them-cook`.
 
-## Agent install
+## Install the skills
 
-Peer prompt example:
-
-> help install this skills: https://github.com/luth-v/skills
-
-Do this exactly:
-
-1. Clone (skip if already present — any local path is fine):
+Use the standard skills CLI to install this repository's skills:
 
 ```bash
-git clone https://github.com/luth-v/skills.git
+npx skills add luth-v/skills --all -g
 ```
 
-2. Run install from that checkout (idempotent; migrates links from the former
-   `harnesses/` path and never overwrites unrelated targets):
+Install one harness skill:
 
 ```bash
-./skills/harness/install.sh
+npx skills add luth-v/skills --skill claude -g -y
 ```
 
-`install.sh` derives the kit path from its own location. There is no fixed clone directory.
-
-3. Verify:
+Install `/bruh`:
 
 ```bash
-ls -la ~/.agents/skills/{_shared,claude,codex,cursor,opencode,let-them-cook}
-ls -la ~/.claude/skills/{claude,codex,cursor,opencode,let-them-cook}
-ls -la ~/.codex/skills/{claude,codex,cursor,opencode,let-them-cook}
-ls -la ~/.cursor/skills/{claude,codex,cursor,opencode,let-them-cook}
+npx skills add luth-v/skills --skill bruh -g -y
 ```
 
-### What install does
-
-| Step | Action |
-|------|--------|
-| SoT | Symlink kit → `~/.agents/skills/{_shared,claude,codex,cursor,opencode,let-them-cook}` |
-| Slash | Symlink the 5 skills → `~/.claude/skills`, `~/.codex/skills`, `~/.cursor/skills` |
-| Migrate | Symlinks into this repo's former `harnesses/` path → point at `harness/` |
-| Skip | Unrelated existing file, directory, or symlink → skip |
-| Thermo | If `thermo-nuclear-code-quality-review` missing → `npx skills add https://github.com/cursor/plugins --skill thermo-nuclear-code-quality-review` |
-
-Each published CLI harness includes its own generated `_shared/` runtime, so installing
-one of `claude`, `codex`, `cursor`, or `opencode` through `npx skills add` is sufficient.
-`let-them-cook` orchestrates those harnesses and should be installed with the full
-collection. The top-level `_shared` link remains for backward compatibility with older
-checkouts.
+`/bruh` is a standalone skill. `let-them-cook` orchestrates the harness skills and
+additionally expects `/handoff` and `thermo-nuclear-code-quality-review`.
 
 ### skills.sh install
 
@@ -58,7 +33,7 @@ Install one harness globally:
 npx skills add luth-v/skills --skill claude -g -y
 ```
 
-Install all five:
+Install all six skills:
 
 ```bash
 npx skills add luth-v/skills --all -g
@@ -71,23 +46,26 @@ npx skills add luth-v/skills --all -g
 
 ### Update
 
-From the same checkout you installed from:
+Update installed skills with the standard CLI:
+
+```bash
+npx skills update -g
+```
+
+For a local checkout, pull the repository and reinstall the selected skill:
 
 ```bash
 git -C /path/to/skills pull
-/path/to/skills/harness/install.sh
+npx skills add /path/to/skills --skill claude -g -y
 ```
-
-Links from this repository's former `harnesses/` path are migrated automatically.
-Unrelated links and real directories are left alone. To re-point those at this checkout,
-remove them under `~/.agents/skills` and the harness slash dirs, then re-run install.
 
 ## Layout
 
 ```
+misc/
+  bruh/             /bruh plain-language restatement skill
 harness/
   README.md          ← this file
-  install.sh
   sync-shared.sh     regenerate each skill's self-contained `_shared/` runtime
   _shared/           live-log filter for CLI runners
     parent-harness-contract.md   run.sh paths/flags, SESSION=, LOG=, /skill-name chaining
@@ -109,8 +87,6 @@ After changing `harness/_shared/`, run:
 ```
 
 Commit the generated per-skill `_shared/` copies with the source change.
-
-## Model defaults (single SoT)
 
 Defaults live **only** in each skill’s `SKILL.md` table (same idea as `/let-them-cook` stage defaults).
 
