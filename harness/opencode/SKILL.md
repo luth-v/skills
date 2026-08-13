@@ -1,7 +1,7 @@
 ---
 name: opencode
 description: >-
-  Spawn OpenCode CLI (`opencode run`) as blocking subagent. Use when the user wants a
+  Spawn OpenCode 2 CLI (`opencode2 run`) as blocking subagent. Use when the user wants a
   harness to delegate to OpenCode CLI, or says /opencode. Chain another skill by
   putting `/skill-name` first in the stdin prompt.
 ---
@@ -19,7 +19,7 @@ description: >-
 
 ## Req
 
-- `opencode` on PATH
+- `opencode2` on PATH
 - Trusted project dir (pass `--cd`)
 - Auth configured for the selected provider/model
 
@@ -37,8 +37,9 @@ Shared flags (`--model`, `--effort`, `--resume`, `--timeout` / `--no-timeout`) w
 described in the parent–harness contract. Env equivalents: `OPENCODE_SUBAGENT_MODEL`,
 `OPENCODE_SUBAGENT_EFFORT`, `OPENCODE_SUBAGENT_TIMEOUT`.
 
-`--cd` is required for every run and maps to OpenCode's `--dir`. Models are
-`provider/model` slugs; `--effort` maps to `--variant`. OpenCode loads skills from
+`--cd` is required for every run and maps to the `opencode2 run` process's working
+directory. Models are `provider/model` slugs; `--effort` maps to the model reference's
+`#variant` suffix, so `--model` must not include a variant. OpenCode loads skills from
 `~/.agents/skills/` — the same tree this kit installs into.
 
 ## Agent steps
@@ -62,17 +63,18 @@ inline.
 ## Script behavior (fixed)
 
 - model/effort from SKILL.md table (or `--model` / `--effort` / `OPENCODE_SUBAGENT_*`)
-  via `-m` / `--variant`
-- `opencode run -m … --variant … --auto --format json --dir …`
+  combined as `-m provider/model#variant`
+- `opencode2 run -m …#… --auto --format json --standalone`, with `--cd` applied as a
+  process working-directory change
 - `--auto` for non-interactive permissions; no `--pure`
 - JSONL filtered via `_shared/live-log.py` with harness `opencode`
-- optional `--resume <session_id>` → `opencode run -s <id>` (exact id)
-- stdin required; `--cd` required and mapped to `--dir`
+- optional `--resume <session_id>` → `opencode2 run -s <id>` (exact id)
+- stdin required; `--cd` required and mapped to the process working directory
 - timeout off by default (`0`); optional via `--timeout` / `OPENCODE_SUBAGENT_TIMEOUT`
 
 ## Limits
 
 - Same-machine OpenCode-in-OpenCode: keep tasks bounded
 - Tool/MCP availability depends on OpenCode configuration
-- No prompt-cache TTL control as of 1.18.3
-- Long interactive work → interactive `opencode`, not `opencode run`
+- No prompt-cache TTL control
+- Long interactive work → interactive `opencode2`, not `opencode2 run`

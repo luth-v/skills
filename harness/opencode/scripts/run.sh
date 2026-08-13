@@ -23,9 +23,11 @@ Usage: run.sh [--model <provider/model>] [--effort <level>] --cd <dir>
               [--resume <session_id>] [--timeout <seconds>] [--no-timeout]
 
 Prompt on stdin only.
-  --model <provider/model> Override model (else SKILL.md / OPENCODE_SUBAGENT_MODEL)
-  --effort <level>        Override effort (else SKILL.md / OPENCODE_SUBAGENT_EFFORT); maps to --variant
-  --cd <dir>              Working root for opencode run (--dir); required
+  --model <provider/model> Override model (else SKILL.md / OPENCODE_SUBAGENT_MODEL).
+                           Must not include #variant; pass the variant via --effort.
+  --effort <level>        Override effort (else SKILL.md / OPENCODE_SUBAGENT_EFFORT);
+                           maps to the #variant suffix in the model reference.
+  --cd <dir>              Working root for opencode2 run (process cwd); required
   --resume <session_id>   Cold-resume that exact session (`run -s <id>`, ses_… form).
                           Exact id required — never --continue.
   --timeout <seconds>     Kill OpenCode after N seconds (exit 124)
@@ -85,6 +87,10 @@ if [[ -z "$MODEL" || -z "$EFFORT" ]]; then
   echo "run.sh: missing model/effort — pass --model/--effort or set defaults in $SKILL_MD" >&2
   exit 2
 fi
+if [[ "$MODEL" == *'#'* ]]; then
+  echo "run.sh: --model must not include #variant — pass the variant via --effort" >&2
+  exit 2
+fi
 if [[ -z "$WORKDIR" ]]; then
   echo "run.sh: --cd <dir> is required" >&2
   exit 2
@@ -93,16 +99,15 @@ if [[ ! -d "$WORKDIR" ]]; then
   echo "run.sh: --cd directory does not exist: $WORKDIR" >&2
   exit 2
 fi
+if ! command -v opencode2 >/dev/null 2>&1; then
+  echo "run.sh: opencode2 not found on PATH; v1 opencode is not a fallback" >&2
+  exit 127
+fi
 
 PROMPT="$(cat)"
 if [[ -z "$PROMPT" ]]; then
   echo "run.sh: prompt required on stdin" >&2
   exit 2
-fi
-
-if ! command -v opencode >/dev/null 2>&1; then
-  echo "run.sh: opencode not found on PATH" >&2
-  exit 127
 fi
 
 # shellcheck source=/dev/null
@@ -111,14 +116,17 @@ source "$SHARED_DIR/setup-live-log.sh" opencode
 RESULT_FILE="$(mktemp)"
 trap 'rm -f "$RESULT_FILE"' EXIT
 
-OPENCODE_ARGS=(run -m "$MODEL" --variant "$EFFORT" --auto --format json --dir "$WORKDIR")
+OPENCODE_ARGS=(run -m "${MODEL}#${EFFORT}" --auto --format json --standalone)
 
 if [[ -n "$RESUME_ID" ]]; then
   OPENCODE_ARGS+=(-s "$RESUME_ID")
 fi
 
 run_pipeline() {
-  printf '%s' "$PROMPT" | opencode "${OPENCODE_ARGS[@]}" | python3 "$LIVE_LOG_PY" --harness opencode --log "$LOG_FILE"
+  (
+    cd "$WORKDIR" &&
+      printf '%s' "$PROMPT" | opencode2 "${OPENCODE_ARGS[@]}" | python3 "$LIVE_LOG_PY" --harness opencode --log "$LOG_FILE"
+  )
 }
 
 set +e
@@ -147,7 +155,7 @@ fi
 set -e
 
 if [[ "$EXIT" -ne 0 ]]; then
-  echo "run.sh: opencode pipeline failed (exit $EXIT). LOG=$LOG_FILE" >&2
+  echo "run.sh: opencode2 pipeline failed (exit $EXIT). LOG=$LOG_FILE" >&2
   if [[ -s "$RESULT_FILE" ]]; then
     cat "$RESULT_FILE" >&2
   fi

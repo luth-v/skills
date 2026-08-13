@@ -30,6 +30,12 @@ def crumb(text: str, limit: int = CRUMB_LEN) -> str:
     return text[: limit - 1] + "…"
 
 
+def error_text(value: Any) -> str:
+    if isinstance(value, dict) and "message" in value:
+        return str(value["message"])
+    return str(value)
+
+
 def tool_summary(name: str, inp: Any) -> str:
     if not isinstance(inp, dict):
         return name
@@ -54,7 +60,6 @@ class LiveLog:
         self.session_id: str | None = None
         self._assistant_buf: list[str] = []
         self._opencode_step_text: list[str] = []
-        self._opencode_last_text: str | None = None
         self._opencode_tools_started: set[str] = set()
         self._log_fp = open(log_path, "a", encoding="utf-8")  # noqa: SIM115
         # Header (LOG=) already written by setup-live-log.sh; note filter pid only
@@ -95,7 +100,6 @@ class LiveLog:
     def _finalize_opencode_text(self) -> None:
         text = "".join(self._opencode_step_text).strip()
         if text:
-            self._opencode_last_text = text
             self.final_result = text
         self._opencode_step_text.clear()
 
@@ -264,17 +268,9 @@ class LiveLog:
             self._emit_progress("step done" + (f" ({', '.join(bits)})" if bits else ""))
             return
 
-        if etype in ("error", "session_error"):
+        if etype == "error":
             msg = data.get("error") or data.get("message") or part.get("error") or raw
-            self._emit_progress(f"error: {crumb(str(msg), RAW_LEN)}")
-            return
-
-        if etype in ("session_end", "session_finish", "session_finished"):
-            self._flush_assistant_crumb()
-            self._finalize_opencode_text()
-            if self.final_result is None and self._opencode_last_text:
-                self.final_result = self._opencode_last_text
-            self._emit_progress("done")
+            self._emit_progress(f"error: {crumb(error_text(msg), RAW_LEN)}")
             return
 
     def _handle_codex(self, data: dict[str, Any], raw: str) -> None:

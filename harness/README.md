@@ -42,7 +42,7 @@ npx skills add luth-v/skills --all -g
 ### Prerequisites (not installed here)
 
 - **`/handoff`** — required before `/let-them-cook` (bring your own)
-- **CLI auth** — `claude`, `codex`, `cursor`, and/or `opencode` on PATH as needed
+- **CLI auth** — `claude`, `codex`, `cursor`, and/or `opencode2` on PATH as needed
 
 ### Update
 
