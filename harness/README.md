@@ -1,6 +1,8 @@
 # Harness skills (luth-v)
 
-Agent install kit: cross-harness runners (`claude` / `codex` / `cursor` / `opencode`), shared live-log helpers, and `/let-them-cook`.
+Agent install kit: cross-harness runners (`claude` / `codex` / `cursor` /
+`opencode`), shared live-log helpers, Cook (`/let-them-cook`), and its
+Cursor-native sibling Hold (`/let-me-hold-your-beer`).
 
 ## Install the skills
 
@@ -24,6 +26,8 @@ npx skills add luth-v/skills --skill bruh -g -y
 
 `/bruh` is a standalone skill. `let-them-cook` orchestrates the harness skills and
 additionally expects `/handoff` and `thermo-nuclear-code-quality-review`.
+`let-me-hold-your-beer` runs the same pipeline with fresh Cursor native subagents;
+it expects those same skills and does not need the CLI harness skills.
 
 ### skills.sh install
 
@@ -33,7 +37,7 @@ Install one harness globally:
 npx skills add luth-v/skills --skill claude -g -y
 ```
 
-Install all six skills:
+Install all skills:
 
 ```bash
 npx skills add luth-v/skills --all -g
@@ -41,7 +45,8 @@ npx skills add luth-v/skills --all -g
 
 ### Prerequisites (not installed here)
 
-- **`/handoff`** — required before `/let-them-cook` (bring your own)
+- **`/handoff`** — required by Cook and by Hold when no `HANDOFF=` is supplied
+- **`/thermo-nuclear-code-quality-review`** — required by Cook and Hold
 - **CLI auth** — `claude`, `codex`, `cursor`, and/or `opencode2` on PATH as needed
 
 ### Update
@@ -75,6 +80,8 @@ harness/
   opencode/          /opencode skill + scripts/run.sh
   let-them-cook/     /let-them-cook pipeline skill
     session-reuse.md             cold-resume rules for cook stages
+  let-me-hold-your-beer/         /let-me-hold-your-beer Cursor-native pipeline
+    SKILL.md                      self-contained; no _shared/ runtime
 ```
 
 Every harness `SKILL.md` points at `_shared/parent-harness-contract.md` for the rules
