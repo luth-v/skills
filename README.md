@@ -2,7 +2,7 @@
 
 Reusable skills for Claude Code, Codex, Cursor, and OpenCode, including
 cross-harness CLI runners, the `let-them-cook` post-grill workflow, its
-Cursor-only sibling `let-me-hold-your-beer`, and `/bruh`.
+Cursor-only sibling `let-me-hold-your-beer`, `/hunter`, and `/bruh`.
 
 ## Install with the skills CLI
 
@@ -26,6 +26,7 @@ Available skills:
 - `opencode`
 - `let-them-cook`
 - `let-me-hold-your-beer`
+- `hunter`
 - `bruh`
 - `wtf`
 
@@ -34,6 +35,7 @@ installed and authenticated. `let-them-cook` orchestrates the harness skills, so
 install the full collection before using it; it additionally expects `/handoff` and
 `thermo-nuclear-code-quality-review`. `let-me-hold-your-beer` is its Cursor-only
 sibling; it expects those same two skills and does not need the CLI harness skills.
+`/hunter` is a one-tick defect hunter (GitHub take tickets, Warden via a Harness).
 `/bruh` is a standalone plain-language restatement skill.
 
 ## Install from a local checkout

@@ -1,8 +1,8 @@
 # Harness skills (luth-v)
 
 Agent install kit: cross-harness runners (`claude` / `codex` / `cursor` /
-`opencode`), shared live-log helpers, Cook (`/let-them-cook`), and its
-Cursor-native sibling Hold (`/let-me-hold-your-beer`).
+`opencode`), shared live-log helpers, Cook (`/let-them-cook`), its
+Cursor-native sibling Hold (`/let-me-hold-your-beer`), and Hunter (`/hunter`).
 
 ## Install the skills
 
@@ -28,6 +28,8 @@ npx skills add luth-v/skills --skill bruh -g -y
 additionally expects `/handoff` and `thermo-nuclear-code-quality-review`.
 `let-me-hold-your-beer` runs the same pipeline with fresh Cursor native subagents;
 it expects those same skills and does not need the CLI harness skills.
+`/hunter` files at most one GitHub take ticket per invoke and expects the CLI
+harness skills (it spawns Warden through `run.sh`).
 
 ### skills.sh install
 
@@ -82,6 +84,7 @@ harness/
     session-reuse.md             cold-resume rules for cook stages
   let-me-hold-your-beer/         /let-me-hold-your-beer Cursor-native pipeline
     SKILL.md                      self-contained; no _shared/ runtime
+  hunter/            /hunter one-tick defect hunter (Warden via a Harness)
 ```
 
 Every harness `SKILL.md` points at `_shared/parent-harness-contract.md` for the rules

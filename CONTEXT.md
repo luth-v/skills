@@ -1,6 +1,6 @@
 # Harness Skills (luth-v)
 
-Cross-harness agent install kit: CLI runners, the post-grill Cook pipeline, and its Cursor-only sibling Hold.
+Cross-harness agent install kit: CLI runners, the post-grill Cook pipeline, its Cursor-only sibling Hold, and Hunter.
 
 ## Language
 
@@ -16,8 +16,16 @@ _Avoid_: pipeline skill, let-them-cook (as a concept name; keep as the slash nam
 The sibling pipeline to Cook — same stages, Cursor-only. The parent spawns each stage as a fresh native subagent with that stage's model; never a Harness, never a helper agent, never session reuse. Slash name `/let-me-hold-your-beer`.
 _Avoid_: simple cook, in-place cook, local cook, same-harness cook, hold-my-beer, let-me-hold-your-beer (as a concept name; keep as the slash name)
 
+**Hunter**:
+A user-invoked one-tick defect hunter. Inspects the default branch, may file at most one GitHub issue labeled `hunter`, or idles. Does not implement the fix.
+_Avoid_: scanner, auditor, loop, consultant (as the hunter)
+
+**Warden**:
+The consultant the Hunter parent spawns before filing. `FILE` or `NO_FILE` on the take. Same spawn square as Cook `PRE_REVIEW`; not thermo.
+_Avoid_: consultant, confirmer, reviewer, spotter
+
 **Parent–harness contract**:
-Shared rules for how any parent (including cook) talks to a harness: `run.sh` paths and flags, live-log lookup, and skill-chaining stdin shape. Lives at `_shared/parent-harness-contract.md`; not the cook stage flow.
+Shared rules for how any parent (including Cook and Hunter) talks to a harness: `run.sh` paths and flags, live-log lookup, and skill-chaining stdin shape. Lives at `_shared/parent-harness-contract.md`; not the cook stage flow.
 _Avoid_: shared helpers, common docs, runner API
 
 **Session reuse**:

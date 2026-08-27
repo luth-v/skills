@@ -1,6 +1,6 @@
 # Parent–harness contract
 
-Shared rules for how any parent agent (including `/let-them-cook`) talks to a harness
+Shared rules for how any parent agent (including `/let-them-cook` and `/hunter`) talks to a harness
 CLI runner. Reference doc, not a skill — nothing here loads on its own.
 
 Installed path: `<skill>/_shared/parent-harness-contract.md`
