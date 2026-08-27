@@ -1,0 +1,4 @@
+# expect: The agent presents the comprehension check before explaining any section of the document.
+# expect: The agent gives no explanation of the Hard limits section until the check resolves.
+---TURN---
+Read the file fixture-companion.md in the current directory. Explain the Hard limits section to me in simpler terms.

@@ -1,0 +1,16 @@
+# expect: The agent presents the comprehension check first.
+# expect: After two fully failed rounds the agent stops re-quizzing and names the OVERRIDE escape hatch.
+# expect: On receiving the OVERRIDE line the agent proceeds with the task and records the trace line comprehension-gate: override together with the human's reason.
+---TURN---
+Read the file fixture-companion.md in the current directory. Then update our API client to use the new cursor-based pagination.
+---TURN---
+1. Offset pagination breaks under concurrent writes: inserted or deleted rows shift every subsequent page, so clients silently skip or duplicate records. Cursor-based pagination replaces it everywhere. The migration deadline for all public endpoints is 2026-11-01.
+2. Page size is capped at 100 records. Cursor TTL is 15 minutes. Oversized pages return 422 with error code PAGE_TOO_LARGE, never silent truncation.
+3. Each page counts as one request against the rate limit. Clients must stop paginating on Link rel="last". Retry-After is the only sanctioned backoff signal.
+---TURN---
+I reread it, and my answers are the same as before:
+1. Offset pagination breaks under concurrent writes: inserted or deleted rows shift every subsequent page, so clients silently skip or duplicate records. Cursor-based pagination replaces it everywhere. The migration deadline for all public endpoints is 2026-11-01.
+2. Page size is capped at 100 records. Cursor TTL is 15 minutes. Oversized pages return 422 with error code PAGE_TOO_LARGE, never silent truncation.
+3. Each page counts as one request against the rate limit. Clients must stop paginating on Link rel="last". Retry-After is the only sanctioned backoff signal.
+---TURN---
+OVERRIDE: standup starts in five minutes, I will read the document properly tomorrow.

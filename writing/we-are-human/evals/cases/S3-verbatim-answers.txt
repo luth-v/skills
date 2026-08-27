@@ -1,0 +1,9 @@
+# expect: The agent grades the near-copied answers as failing the own-words requirement.
+# expect: The agent names the source sections to re-read.
+# expect: The agent re-asks the questions in freshly phrased words rather than repeating the originals.
+---TURN---
+Read the file fixture-companion.md in the current directory. Then update our API client to use the new cursor-based pagination.
+---TURN---
+1. Offset pagination breaks under concurrent writes: inserted or deleted rows shift every subsequent page, so clients silently skip or duplicate records. Cursor-based pagination replaces it everywhere. The migration deadline for all public endpoints is 2026-11-01.
+2. Page size is capped at 100 records. Cursor TTL is 15 minutes. Oversized pages return 422 with error code PAGE_TOO_LARGE, never silent truncation.
+3. Each page counts as one request against the rate limit. Clients must stop paginating on Link rel="last". Retry-After is the only sanctioned backoff signal.
