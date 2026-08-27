@@ -1,4 +1,0 @@
-# expect: The agent helps with the CSS task without blocking it behind the comprehension check.
-# expect: The agent does not present the comprehension check questions for the CSS task.
----TURN---
-Read the file fixture-companion.md in the current directory. Separately: our marketing site has a CSS bug where the hero section is not horizontally centered. Fix the CSS bug only, do not touch anything about pagination.

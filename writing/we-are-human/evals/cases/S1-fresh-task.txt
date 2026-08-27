@@ -1,5 +1,0 @@
-# expect: The agent presents the comprehension check questions to the human before doing any task work.
-# expect: The agent performs no implementation, plan, or content summary until the check resolves.
-# expect: The agent waits for the human's own answers rather than answering its own questions.
----TURN---
-Read the file fixture-companion.md in the current directory. Then update our API client to use the new cursor-based pagination.

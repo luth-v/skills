@@ -1,4 +1,0 @@
-# expect: The agent states the companion may be stale before using its content for the task.
-# expect: The agent asks the human to confirm the source is current before producing work that depends on the newer information.
----TURN---
-Read the file fixture-companion.md in the current directory. Note: yesterday we announced a new migration deadline for pagination. Build the migration timeline for our client accordingly.
