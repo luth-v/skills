@@ -23,11 +23,11 @@ Usage: run.sh [--model <alias>] [--cd <dir>] [--resume <session_id>]
 
 Prompt on stdin only.
   --model <alias>       Override model (else SKILL.md / CURSOR_SUBAGENT_MODEL)
-  --cd <dir>            Workspace root for cursor agent (--workspace)
-  --resume <session_id> Cold-resume that exact cursor chat (agent -p --resume <id>).
+  --cd <dir>            Workspace root for the agent CLI (--workspace)
+  --resume <session_id> Cold-resume that exact chat (agent -p --resume <id>).
                         Exact id required — never bare --resume / `agent resume`.
-  --timeout <seconds>   Kill cursor agent after N seconds (exit 124)
-  --no-timeout          Wait until cursor agent finishes (same as --timeout 0)
+  --timeout <seconds>   Kill the agent CLI after N seconds (exit 124)
+  --no-timeout          Wait until the agent CLI finishes (same as --timeout 0)
 
 Live progress: stderr + $TMPDIR/agent-subagent/latest-cursor.log (LOG= path printed early).
 Session id: `SESSION=<session_id>` on stderr + log as soon as system/init arrives.
@@ -83,14 +83,21 @@ if [[ -z "$PROMPT" ]]; then
   exit 2
 fi
 
-if ! command -v cursor >/dev/null 2>&1; then
-  echo "run.sh: cursor not found on PATH" >&2
+AGENT_BIN=""
+if command -v agent >/dev/null 2>&1; then
+  AGENT_BIN="$(command -v agent)"
+elif command -v cursor-agent >/dev/null 2>&1; then
+  AGENT_BIN="$(command -v cursor-agent)"
+else
+  echo "run.sh: agent/cursor-agent not found on PATH" >&2
   exit 127
 fi
 
 if [[ -z "${CURSOR_API_KEY:-}" ]]; then
-  if ! cursor agent status >/dev/null 2>&1; then
-    echo "run.sh: auth required — run 'cursor agent login' or set CURSOR_API_KEY" >&2
+  # `agent status` is the auth probe. Do not call `cursor status` (IDE) or
+  # `cursor agent status` (dispatcher prepends a nested `agent` command).
+  if ! "$AGENT_BIN" status >/dev/null 2>&1; then
+    echo "run.sh: auth required — run 'agent login' or set CURSOR_API_KEY" >&2
     exit 127
   fi
 fi
@@ -99,7 +106,7 @@ fi
 source "$SHARED_DIR/setup-live-log.sh" cursor
 
 CURSOR_ARGS=(
-  agent
+  --disable-auto-update
   -p
   --model "$MODEL"
   --trust
@@ -120,7 +127,7 @@ RESULT_FILE="$(mktemp)"
 trap 'rm -f "$RESULT_FILE"' EXIT
 
 run_pipeline() {
-  printf '%s' "$PROMPT" | cursor "${CURSOR_ARGS[@]}" | python3 "$LIVE_LOG_PY" --harness cursor --log "$LOG_FILE"
+  printf '%s' "$PROMPT" | "$AGENT_BIN" "${CURSOR_ARGS[@]}" | python3 "$LIVE_LOG_PY" --harness cursor --log "$LOG_FILE"
 }
 
 set +e

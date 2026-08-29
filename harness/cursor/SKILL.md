@@ -1,7 +1,7 @@
 ---
 name: cursor
 description: >-
-  Spawn Cursor Agent CLI (`cursor agent -p`) as blocking subagent. Use when the user
+  Spawn Cursor Agent CLI (`agent -p`) as blocking subagent. Use when the user
   wants a harness to delegate to Cursor CLI, or says /cursor. Chain another skill by
   putting `/skill-name` first in the stdin prompt.
 argument-hint: "[model]"
@@ -22,9 +22,9 @@ Reasoning effort rides in the model slug — there is no separate `--effort` fla
 
 ## Req
 
-- `cursor` on PATH
+- `agent` or `cursor-agent` on PATH (the CLI, not the `cursor` IDE dispatcher)
 - Trusted project dir (pass `--cd`)
-- Auth ok (`cursor agent login` or `CURSOR_API_KEY`)
+- Auth ok (`agent login` or `CURSOR_API_KEY`)
 
 ## Invoke deltas
 
@@ -66,15 +66,17 @@ tool is a different surface and does not honour this contract.
 
 ## Script behavior (fixed)
 
+- invokes `agent` (fallback `cursor-agent`), never `cursor agent` (dispatcher)
+- `--disable-auto-update` (harness runs must not self-update mid-spawn)
 - model from SKILL.md table (or `--model` / `CURSOR_SUBAGENT_MODEL`; not IDE pick)
 - `--trust --force --approve-mcps` (non-interactive)
 - `--output-format stream-json` (filtered via `_shared/live-log.py`)
-- optional `--resume <session_id>` → `cursor agent -p --resume <id>` (exact id)
-- stdin required (no bare `cursor agent -p` — hang risk)
+- optional `--resume <session_id>` → `agent -p --resume <id>` (exact id)
+- stdin required (no bare `agent -p` — hang risk)
 - timeout off by default (`0`); optional via `--timeout` / `CURSOR_SUBAGENT_TIMEOUT`
 
 ## Limits
 
 - Same-machine Cursor-in-Cursor: keep tasks bounded
 - Parent MCP servers are not shared — only what Cursor Agent CLI has
-- Long interactive work → interactive `cursor agent`, not `-p`
+- Long interactive work → interactive `agent`, not `-p`

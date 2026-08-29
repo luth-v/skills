@@ -49,7 +49,7 @@ npx skills add luth-v/skills --all -g
 
 - **`/handoff`** — required by Cook and by Hold when no `HANDOFF=` is supplied
 - **`/thermo-nuclear-code-quality-review`** — required by Cook and Hold
-- **CLI auth** — `claude`, `codex`, `cursor`, and/or `opencode2` on PATH as needed
+- **CLI auth** — `claude`, `codex`, `agent`/`cursor-agent`, and/or `opencode2` on PATH as needed
 
 ### Update
 
