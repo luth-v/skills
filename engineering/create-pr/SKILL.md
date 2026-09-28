@@ -21,12 +21,11 @@ The platform file owns the hero, asset hosting, the publisher, and the PR comman
 ## Flow
 
 1. **Gather.** Diff against the base branch, the commits, `CONTEXT.md` for domain language, and the repo's recent PR titles for the title style. Look for an existing PR on this branch; if one exists, read the `create-pr` marker from its body (see [Marker](#marker)). Done when you can say what changed, why, and what it could break.
-2. **Find the handoff.** Use `HANDOFF=/path`, else a handoff path mentioned in this conversation, else the newest handoff file in `$TMPDIR` written since the branch's first commit, confirmed by the user. None found → skip it.
+2. **Find the handoff.** Use `HANDOFF=/path`, else a handoff path mentioned in this conversation. None found → skip it; never guess one from disk.
 3. **Draft in `/tmp/create-pr/<repo>-<branch>/`**: `body.md`, `explainer.html` (read [`explainer.md`](explainer.md)), the hero and any screenshots, and the redacted handoff copy. Done when every file exists and the body's links are placeholders.
-4. **Scrub.** Every file bound for publishing is free of secrets, tokens, customer data, production hostnames or values, and personal data. Replace real values with obvious fakes.
-5. **Gate.** Show the user the body (on a re-run, the diff against the live body), the file paths, and the title; open the explainer in a preview when a preview tool is available. Nothing leaves the machine before the user says go.
-6. **Publish.** In order: assets per the platform file, the explainer, the handoff (as Markdown). Re-runs Edit the existing gist and Shares named in the marker. Fill the real links into `body.md` and write the marker.
-7. **Open or update the PR** with the platform file's commands, then link the PR in this thread if a PR-linking tool is available. Report the PR URL and each published link.
+4. **Scrub.** Every file bound for publishing is free of secrets, tokens, customer data, production hostnames or values, and personal data. Replace real values with obvious fakes. When in doubt, redact or fake it; never stop to ask.
+5. **Publish.** No confirmation: publish as soon as the scrub is done. In order: assets per the platform file, the explainer, the handoff (as Markdown). Re-runs Edit the existing gist and Shares named in the marker, overwriting them. Fill the real links into `body.md` and write the marker.
+6. **Open or update the PR** with the platform file's commands (a re-run overwrites the live title and body), then link the PR in this thread if a PR-linking tool is available. Report the PR URL, each published link, and anything skipped.
 
 ## Body
 

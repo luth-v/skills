@@ -24,7 +24,7 @@ No gist, no hosted images, no marker `gist=` key. Screenshots, the hero animatio
 
 ## Publisher
 
-The installed canvas-style publisher skill for Bitbucket repos (the `artifacts` sibling that publishes to the Bitbucket org's own Share host): `publish --title "<repo> #<n>: <title>" <abs path>`, `edit <slug> <abs path>` on a re-run. When no such skill is installed, ask the user which publisher to use.
+The installed canvas-style publisher skill for Bitbucket repos (the `artifacts` sibling that publishes to the Bitbucket org's own Share host): `publish --title "<repo> #<n>: <title>" <abs path>`, `edit <slug> <abs path>` on a re-run. When no such skill is installed, open the PR without the explainer (drop the hero link) and report it as skipped.
 
 ## PR commands
 
