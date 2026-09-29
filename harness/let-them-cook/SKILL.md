@@ -1,9 +1,10 @@
 ---
 name: let-them-cook
 description: >-
-  Post-grill pipeline: handoff → thermo pre-review → optional human gate → impl →
-  thermo post-review → optional fix. After a grilled plan, or /let-them-cook.
-argument-hint: "[STAGE=harness model [effort] | CACHE_TTL=1h|5m | HANDOFF=/path RESUME=stage]"
+  Post-grill pipeline: handoff → thermo + architecture pre-review → human gate →
+  impl → thermo + code-review-matt post-review → optional fix. After a grilled
+  plan, or /let-them-cook.
+argument-hint: "[STAGE=harness model [effort] | GATE=always|auto | CACHE_TTL=1h|5m | HANDOFF=/path RESUME=stage]"
 ---
 
 # Let Them Cook
@@ -14,10 +15,19 @@ Post-grill only — the plan is already grilled, so this skill never runs `/gril
 through a harness rather than driving a CLI itself. A stage agent implements, reviews,
 or fixes — it never runs this skill, advances a stage, or takes the gate.
 
-**Spawn target:** same harness *and* model as the current agent → that harness's
-native subagent (Cursor `Task` / Claude Agent / Codex spawn / OpenCode agent).
-Different harness or model → that CLI's `run.sh` (e.g. Cursor wanting fable → Claude
-CLI `run.sh`).
+**Spawn target:** stage harness same as the parent's (the agent the human is talking
+to) → that harness's native subagent (Cursor `Task` / Claude Agent / Codex spawn /
+OpenCode agent), whatever the stage's model and effort. Set the model through the
+native surface's model option, and the effort through an agent definition that carries
+it when the harness has one (Claude: `effort:` in `.claude/agents/*.md` frontmatter —
+`cook-xhigh` exists for xhigh stages; same effort as the parent → default agent).
+No way to set it → the stage inherits the parent's effort; say so in the spawn
+announcement rather than letting it pass silently. Different harness → that CLI's
+`run.sh` (e.g. Cursor wanting fable → Claude CLI `run.sh`).
+
+**Native stages are never reused.** Every native stage spawn is fresh: no resume, no
+continuing an earlier agent by id (e.g. Claude `SendMessage`), no chain entry. Session
+reuse applies only to `run.sh` spawns.
 
 ## Helper agents
 
@@ -43,16 +53,16 @@ helpers, or these limits verbatim when it does.
 
 ## Defaults (invoke lines override)
 
-| Stage                   | Value                         |
-| ----------------------- | ----------------------------- |
-| `PRE_REVIEW`            | `claude claude-opus-5 medium` |
-| `PRE_REVIEW_HELPER`     | `claude claude-opus-5 low`    |
-| `IMPLEMENTATION`        | `codex gpt-5.6-sol high`      |
-| `IMPLEMENTATION_HELPER` | `codex gpt-5.6-luna max`      |
-| `POST_REVIEW`           | `claude claude-opus-5 medium` |
-| `POST_REVIEW_HELPER`    | `claude claude-opus-5 low`    |
-| `FIX`                   | `codex gpt-5.6-sol high`      |
-| `FIX_HELPER`            | `codex gpt-5.6-luna max`      |
+| Stage                   | Value                                     |
+| ----------------------- | ----------------------------------------- |
+| `PRE_REVIEW`            | `claude claude-opus-5.5 xhigh`            |
+| `PRE_REVIEW_HELPER`     | `claude claude-opus-5.5 medium`           |
+| `IMPLEMENTATION`        | `claude claude-opus-5.5 medium`           |
+| `IMPLEMENTATION_HELPER` | `claude claude-opus-5.5 medium`           |
+| `POST_REVIEW`           | `claude claude-opus-5.5 medium`           |
+| `POST_REVIEW_HELPER`    | `claude claude-opus-5.5 medium`           |
+| `FIX`                   | `claude claude-opus-5.5 medium`           |
+| `FIX_HELPER`            | `claude claude-opus-5.5 medium`           |
 
 Shape: `harness model [effort]` — `claude`|`codex`|`cursor`|`opencode`. The handoff
 comes from the parent's own `/handoff`.
@@ -83,38 +93,82 @@ Each step below lists what "done" looks like. Move on when it holds.
 1. **Handoff.** Run `/handoff` (or take `HANDOFF=`).
    Done when an absolute handoff path exists and is recorded for the rest of the cook.
 
-2. **PRE_REVIEW.** Spawn it; stdin starts with `/thermo-nuclear-code-quality-review`.
-   Prompt contract: treat the handoff as a **proposed implementation**, not code to
-   write; rewrite that same handoff absorbing blockers; write no code; end stdout and
-   the handoff with exactly `GATE: REVIEW` or `GATE: CONTINUE`.
-   Done when the handoff is rewritten, nothing was implemented, and one of those two
-   lines is present. No re-handoff or second pre-review unless the user asks.
+2. **PRE_REVIEW.** Two passes in one stage, same triple: pass A runs
+   `/thermo-nuclear-code-quality-review`, pass B `/improve-codebase-architecture`.
+   - `run.sh` spawn: pass A is a spawn (subject to the session-reuse gate) whose stdin
+     starts with pass A's slash line. Pass B resumes pass A's session with stdin
+     starting with pass B's slash line — a new slash line is the only way the second
+     skill loads.
+   - Native spawn: one fresh agent runs both passes in order. The prompt tells it to
+     load each skill with its skill tool, or to read that skill's `SKILL.md` when the
+     skill is not model-invocable (`/improve-codebase-architecture` has
+     `disable-model-invocation: true`).
+   Shared contract: treat the handoff as a **proposed implementation**, not code to
+   write; rewrite that same handoff absorbing blockers; write no code.
+   - Pass A: thermo review of the proposal. No gate line.
+   - Pass B, pipeline mode: scope the scan to the modules the handoff touches (the
+     handoff is the named direction — skip the git-log hot-spot hunt). Explore inline
+     unless this stage has helpers. Write the HTML report and record its absolute
+     path in the handoff, but do not open it, do not ask which candidate to explore,
+     and skip the grilling loop entirely. Deepening the proposal needs to stay sound
+     → absorb into the handoff. Everything else → a `### Deferred architecture
+     candidates` list in the handoff, not implemented. Do not edit `CONTEXT.md` or
+     ADRs.
+   - Pass B ends stdout and the handoff with exactly `GATE: REVIEW` or
+     `GATE: CONTINUE`, covering both passes: `REVIEW` when either pass raised a
+     blocker or absorbed a change that needs a human call.
+   Done when the handoff is rewritten by both passes, nothing was implemented, and
+   one gate line is present. No re-handoff or second pre-review unless the user asks.
 
-3. **Human gate (only on `GATE: REVIEW`).** `GATE: REVIEW` → stop, summarize the
-   blockers, and wait for the user's explicit go-ahead. `GATE: CONTINUE` → go straight
-   to IMPLEMENTATION with no pause. The parent takes the gate PRE_REVIEW asked for and
-   never invents one.
-   Done when either the user has said go, or the run continued unpaused on
-   `GATE: CONTINUE`.
+3. **Human gate.** Mode comes from the invoke line: `GATE=always` (default) or
+   `GATE=auto`; anything else → stop and ask.
+   - `always`: stop after every PRE_REVIEW, whatever its gate line. Open the HTML
+     report (`xdg-open` / `open` / `start`) and give the human a short summary: what
+     each pass changed versus the grilled plan, any scope it added, the deferred
+     architecture candidates, and PRE_REVIEW's own gate line as a hint ("pre-review
+     says CONTINUE"). Wait for an explicit go-ahead; edits the human asks for go into
+     the handoff before IMPLEMENTATION.
+   - `auto`: follow PRE_REVIEW's line. `GATE: REVIEW` → stop, summarize the blockers,
+     and wait for the go-ahead. `GATE: CONTINUE` → go straight to IMPLEMENTATION with
+     no pause. The parent never invents a gate in this mode.
+   Done when the user has said go, or `auto` continued unpaused on `GATE: CONTINUE`.
 
-4. **IMPLEMENTATION.** Spawn it. Freeform prompt, and it must say: you are the
+4. **IMPLEMENTATION.** Before spawning, if the handoff has no `BASE:` line, record
+   `BASE: <git rev-parse HEAD>` in it (plus `BASE_DIRTY: yes` when the worktree
+   already had changes). POST_REVIEW diffs against it. Then spawn. Freeform prompt, and it must say: you are the
    implementer — edit code yourself; no nested agents (or the helper limits when this
    stage has helpers); do not re-run this skill; scope is the handoff only; an open
    question means stop and report it. Pass `--cd` for codex/cursor/opencode.
    Done when the implementer reports finished work within handoff scope, with any open
    question surfaced or an explicit "none".
 
-5. **POST_REVIEW.** Spawn once; stdin starts with `/thermo-…`. Review the
-   implementation against the handoff, append findings to the handoff, no fixing, and
-   no nesting (or the helper limits when this stage has helpers). End stdout **and** the
-   handoff with the exact line `VERDICT: CLEAN` or `VERDICT: NEEDS_FIX`.
-   Thermo approval bar: must-fix or structural blockers →
-   `NEEDS_FIX`; nits and suggestions → still `CLEAN`, listed as optional.
-   Done when findings are on the handoff and exactly one verdict line appears in both
-   places.
+5. **POST_REVIEW.** Two passes in one stage, same triple, same `run.sh` / native
+   pattern as PRE_REVIEW: pass A runs `/thermo-nuclear-code-quality-review`, pass B
+   `/code-review-matt`. Never resume an IMPLEMENTATION or FIX session for this
+   stage — the reviewer needs fresh eyes.
+   Shared contract: review the implementation against the handoff, append findings to
+   the handoff, no fixing, no nesting (or the helper limits when this stage has
+   helpers).
+   - Pass A: thermo findings under `### Thermo`. No verdict line.
+   - Pass B, pipeline mode: the fixed point is the handoff's `BASE:`. The cook never
+     commits, so the diff is `git diff <BASE>` (working tree) plus untracked files
+     from `git status --porcelain`, not the three-dot range. The spec is the handoff
+     itself — skip issue-tracker lookup and never ask the user. Run the Standards and
+     Spec axes as parallel native subagents only when this stage has helpers;
+     otherwise run them one after the other inline. Append them as `### Standards`
+     and `### Spec`, not merged or reranked. `BASE:` missing → stop the stage and
+     report it.
+   - Pass B ends stdout **and** the handoff with the exact line `VERDICT: CLEAN` or
+     `VERDICT: NEEDS_FIX`, covering all three sections.
+   Approval bar: thermo must-fix or structural blockers, a hard documented-standard
+   violation, or a Spec finding (missing, partial, or wrong requirement) →
+   `NEEDS_FIX`. Nits, baseline smells, and scope-creep notes alone → still `CLEAN`,
+   listed as optional.
+   Done when all three sections are on the handoff and exactly one verdict line
+   appears in both places.
 
 6. **FIX (only on `NEEDS_FIX`).** Spawn once (defaults or `FIX=`). Prompt: fix the
-   findings in the handoff post-review section; handoff-only scope; no re-review; no
+   must-fix findings in the handoff post-review sections; handoff-only scope; no re-review; no
    nesting (or the helper limits when this stage has helpers); append the fix outcome
    and any leftovers to the handoff. Leftovers are an acceptable outcome, not a stage
    failure. `CLEAN` → skip this step.
@@ -124,7 +178,9 @@ Each step below lists what "done" looks like. Move on when it holds.
 7. **Report.** Tell the user the handoff path and the outcome. No commit, no PR.
    Done when the user has the path and the result in hand.
 
-**Session-reuse gate — every spawn in steps 2/4/5/6.** Before spawning, scan the
+**Session-reuse gate — every `run.sh` spawn in steps 2/4/5/6** (pass A for the
+two-pass stages; pass B always resumes its own pass A). Native spawns skip this gate —
+always fresh. Before spawning, scan the
 handoff's `## Pipeline sessions` bottom-up for an earlier `status: ok` entry matching
 this stage's harness + model + effort. Match → announce `resuming <harness> session
 <id> for <STAGE>` and spawn with `--resume <id>` plus the hybrid resume prompt. No
@@ -172,6 +228,6 @@ Cook-specific notes on top of that contract:
   silence mid-stage, read the stage's `LOG=` file before assuming it is stuck.
 - A chained skill missing from the target harness's skills dir → stop and tell the
   user.
-- Same-harness **native** subagents (Cursor `Task`, Claude Agent, …): use that
-  surface's own resume/agent id if it exposes one; if it does not, spawn fresh and
-  record no chain entry.
+- Same-harness **native** subagents (Cursor `Task`, Claude Agent, …): always spawn
+  fresh and record no chain entry, even when the surface exposes a resume or agent
+  id.

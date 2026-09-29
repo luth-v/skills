@@ -15,6 +15,10 @@ no keep-alive and no background process.
 **Always on** when an earlier stage *in this cook* matches the strict triple
 **harness + model + effort**. No flag, no opt-in.
 
+**`run.sh` spawns only.** A stage spawned as a native subagent (its harness matches
+the parent's) is always fresh: it never resumes, is never resumed, and gets no chain
+entry.
+
 Session ids come from the `SESSION=` line each `run.sh` prints on stderr; see
 `_shared/parent-harness-contract.md` for the runner contract.
 
@@ -50,6 +54,15 @@ obtained a session id, in stage order:
    that harness's `run.sh` with `--resume <id>` and the hybrid prompt below.
 3. No match → announce `fresh spawn <harness> <model> <effort> for <STAGE>`, then
    spawn normally.
+
+Exception: `POST_REVIEW` skips `IMPLEMENTATION` and `FIX` entries — a reviewer never
+resumes the session that wrote the code. With the all-Claude defaults this means
+POST_REVIEW spawns fresh.
+
+Two-pass stages (`PRE_REVIEW`, `POST_REVIEW`): the gate applies to pass A. Pass B
+always resumes pass A's session with its own `/skill-name` first line, and records its
+own chain entry with stage `PRE_REVIEW_B` / `POST_REVIEW_B` (same triple). Pass B
+entries are matchable by later stages like any other.
 
 `IMPLEMENTATION` is included: if the cook stopped after PRE and later resumes at
 `implementation`, IMPL may resume PRE's session. They stay two parent-orchestrated
