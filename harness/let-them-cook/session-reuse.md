@@ -56,8 +56,8 @@ obtained a session id, in stage order:
    spawn normally.
 
 Exception: `POST_REVIEW` skips `IMPLEMENTATION` and `FIX` entries — a reviewer never
-resumes the session that wrote the code. With the all-Claude defaults this means
-POST_REVIEW spawns fresh.
+resumes the session that wrote the code. With the defaults, no earlier stage shares
+POST_REVIEW's triple, so it spawns fresh.
 
 Two-pass stages (`PRE_REVIEW`, `POST_REVIEW`): the gate applies to pass A. Pass B
 always resumes pass A's session with its own `/skill-name` first line, and records its
