@@ -55,8 +55,8 @@ helpers, or these limits verbatim when it does.
 
 | Stage                   | Value                                     |
 | ----------------------- | ----------------------------------------- |
-| `PRE_REVIEW`            | `claude claude-opus-5.5 xhigh`            |
-| `PRE_REVIEW_HELPER`     | `claude claude-opus-5.5 medium`           |
+| `PRE_REVIEW`            | `codex gpt-6.1-sol xhigh`                 |
+| `PRE_REVIEW_HELPER`     | `codex gpt-6.1-sol medium`                |
 | `IMPLEMENTATION`        | `claude claude-opus-5.5 medium`           |
 | `IMPLEMENTATION_HELPER` | `claude claude-opus-5.5 medium`           |
 | `POST_REVIEW`           | `claude claude-opus-5.5 medium`           |
