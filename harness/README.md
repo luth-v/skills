@@ -25,7 +25,7 @@ npx skills add luth-v/skills --skill bruh -g -y
 ```
 
 `/bruh` is a standalone skill. `let-them-cook` orchestrates the harness skills and
-additionally expects `/handoff` and `thermo-nuclear-code-quality-review`.
+additionally expects `thermo-nuclear-code-quality-review`.
 `let-me-hold-your-beer` runs the same pipeline as fresh T3 Code delegated tasks;
 it expects the same skills and does not need the CLI harness skills.
 `/hunter` files at most one GitHub take ticket per invoke and expects the CLI
@@ -47,7 +47,6 @@ npx skills add luth-v/skills --all -g
 
 ### Prerequisites (not installed here)
 
-- **`/handoff`** — required by Cook and by Hold when no `HANDOFF=` is supplied
 - **`/thermo-nuclear-code-quality-review`** — required by Cook and Hold
 - **`/improve-codebase-architecture`**, **`/code-review-matt`** — required by Cook and Hold
 - **T3 Code** — Hold runs only as a T3 Code thread (needs the `t3-code` MCP tools)

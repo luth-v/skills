@@ -64,8 +64,7 @@ helpers, or these limits verbatim when it does.
 | `FIX`                   | `claude claude-opus-5-5 medium`           |
 | `FIX_HELPER`            | `claude claude-opus-5-5 medium`           |
 
-Shape: `harness model [effort]` — `claude`|`codex`|`cursor`|`opencode`. The handoff
-comes from the parent's own `/handoff`.
+Shape: `harness model [effort]` — `claude`|`codex`|`cursor`|`opencode`.
 
 A `*_HELPER` row is the model a stage's helpers run on; its harness always matches the
 stage's, since helpers are native-only. Overriding a `*_HELPER` row picks the model —
@@ -90,7 +89,13 @@ RESUME=implementation
 
 Each step below lists what "done" looks like. Move on when it holds.
 
-1. **Handoff.** Run `/handoff` (or take `HANDOFF=`).
+1. **Handoff.** Take `HANDOFF=`, or write the handoff yourself from this
+   conversation: one markdown file in the OS temp directory (`$TMPDIR`, else
+   `/tmp`) that a fresh agent can implement from. Reference existing artifacts
+   (specs, plans, ADRs, `CONTEXT.md`, issues, diffs) by path instead of copying
+   them, redact secrets and personal data, and end with a `## Suggested skills`
+   section. `/handoff` is user-only (`disable-model-invocation`), so the parent
+   writes this file itself rather than calling it.
    Done when an absolute handoff path exists and is recorded for the rest of the cook.
 
 2. **PRE_REVIEW.** Two passes in one stage, same triple: pass A runs

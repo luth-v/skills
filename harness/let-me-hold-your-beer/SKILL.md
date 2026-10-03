@@ -21,8 +21,7 @@ stage, or takes the Human gate. Every stage prompt carries the **stage clause**:
 t3_thread_*, create_threads, schedule_task)`.
 
 Hold requires T3 Code. Without the `t3-code` tools (`orchestrator_capabilities`,
-`delegate_task`), stop and tell the user to use Cook. Confirm `/handoff` is
-available unless the invocation supplies `HANDOFF=`.
+`delegate_task`), stop and tell the user to use Cook.
 
 ## Defaults (invoke lines override)
 
@@ -75,7 +74,13 @@ and report.
 
 Each step below lists what "done" looks like. Move on when it holds.
 
-1. **Handoff.** Run the parent's own `/handoff`, or take `HANDOFF=`.
+1. **Handoff.** Take `HANDOFF=`, or write the handoff yourself from this
+   conversation: one markdown file in the OS temp directory (`$TMPDIR`, else
+   `/tmp`) that a fresh agent can implement from. Reference existing artifacts
+   (specs, plans, ADRs, `CONTEXT.md`, issues, diffs) by path instead of copying
+   them, redact secrets and personal data, and end with a `## Suggested skills`
+   section. `/handoff` is user-only (`disable-model-invocation`), so the parent
+   writes this file itself rather than calling it.
    Done when an absolute handoff path exists and is recorded for the rest of the
    Hold.
 

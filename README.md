@@ -33,9 +33,9 @@ Available skills:
 
 Each CLI harness skill is self-contained and requires its corresponding CLI to be
 installed and authenticated. `let-them-cook` orchestrates the harness skills, so
-install the full collection before using it; it additionally expects `/handoff` and
+install the full collection before using it; it additionally expects
 `thermo-nuclear-code-quality-review`. `let-me-hold-your-beer` is its T3 Code
-sibling; it runs only inside T3 Code, expects those same two skills plus
+sibling; it runs only inside T3 Code, expects that skill plus
 `improve-codebase-architecture` and `code-review-matt`, and does not need the CLI
 harness skills.
 `/hunter` is a one-tick defect hunter (GitHub take tickets, Warden via a Harness).
