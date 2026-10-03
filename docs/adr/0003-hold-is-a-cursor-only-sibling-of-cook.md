@@ -1,3 +1,7 @@
+---
+status: superseded by ADR-0004
+---
+
 # Hold is a Cursor-only sibling of Cook
 
 Cook stays the cross-Harness pipeline. Hold (`/let-me-hold-your-beer`) runs the same stages as fresh Cursor native subagents with a per-stage model table — never `run.sh`, helpers, or session reuse — so the simple path cannot grow Harness machinery, and Cook remains for Claude↔Codex hops.

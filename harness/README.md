@@ -2,7 +2,7 @@
 
 Agent install kit: cross-harness runners (`claude` / `codex` / `cursor` /
 `opencode`), shared live-log helpers, Cook (`/let-them-cook`), its
-Cursor-native sibling Hold (`/let-me-hold-your-beer`), and Hunter (`/hunter`).
+T3 Code sibling Hold (`/let-me-hold-your-beer`), and Hunter (`/hunter`).
 
 ## Install the skills
 
@@ -26,8 +26,8 @@ npx skills add luth-v/skills --skill bruh -g -y
 
 `/bruh` is a standalone skill. `let-them-cook` orchestrates the harness skills and
 additionally expects `/handoff` and `thermo-nuclear-code-quality-review`.
-`let-me-hold-your-beer` runs the same pipeline with fresh Cursor native subagents;
-it expects those same skills and does not need the CLI harness skills.
+`let-me-hold-your-beer` runs the same pipeline as fresh T3 Code delegated tasks;
+it expects the same skills and does not need the CLI harness skills.
 `/hunter` files at most one GitHub take ticket per invoke and expects the CLI
 harness skills (it spawns Warden through `run.sh`).
 
@@ -49,6 +49,8 @@ npx skills add luth-v/skills --all -g
 
 - **`/handoff`** — required by Cook and by Hold when no `HANDOFF=` is supplied
 - **`/thermo-nuclear-code-quality-review`** — required by Cook and Hold
+- **`/improve-codebase-architecture`**, **`/code-review-matt`** — required by Cook and Hold
+- **T3 Code** — Hold runs only as a T3 Code thread (needs the `t3-code` MCP tools)
 - **CLI auth** — `claude`, `codex`, `agent`/`cursor-agent`, and/or `opencode2` on PATH as needed
 
 ### Update
@@ -82,7 +84,7 @@ harness/
   opencode/          /opencode skill + scripts/run.sh
   let-them-cook/     /let-them-cook pipeline skill
     session-reuse.md             cold-resume rules for cook stages
-  let-me-hold-your-beer/         /let-me-hold-your-beer Cursor-native pipeline
+  let-me-hold-your-beer/         /let-me-hold-your-beer T3 Code pipeline
     SKILL.md                      self-contained; no _shared/ runtime
   hunter/            /hunter one-tick defect hunter (Warden via a Harness)
 ```
