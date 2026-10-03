@@ -55,14 +55,14 @@ helpers, or these limits verbatim when it does.
 
 | Stage                   | Value                                     |
 | ----------------------- | ----------------------------------------- |
-| `PRE_REVIEW`            | `claude claude-opus-5.5 xhigh`            |
-| `PRE_REVIEW_HELPER`     | `claude claude-opus-5.5 medium`           |
-| `IMPLEMENTATION`        | `claude claude-opus-5.5 medium`           |
-| `IMPLEMENTATION_HELPER` | `claude claude-opus-5.5 medium`           |
+| `PRE_REVIEW`            | `claude claude-opus-5-5 xhigh`            |
+| `PRE_REVIEW_HELPER`     | `claude claude-opus-5-5 medium`           |
+| `IMPLEMENTATION`        | `claude claude-opus-5-5 medium`           |
+| `IMPLEMENTATION_HELPER` | `claude claude-opus-5-5 medium`           |
 | `POST_REVIEW`           | `codex gpt-6.1-sol xhigh`                 |
 | `POST_REVIEW_HELPER`    | `codex gpt-6.1-sol medium`                |
-| `FIX`                   | `claude claude-opus-5.5 medium`           |
-| `FIX_HELPER`            | `claude claude-opus-5.5 medium`           |
+| `FIX`                   | `claude claude-opus-5-5 medium`           |
+| `FIX_HELPER`            | `claude claude-opus-5-5 medium`           |
 
 Shape: `harness model [effort]` — `claude`|`codex`|`cursor`|`opencode`. The handoff
 comes from the parent's own `/handoff`.
