@@ -38,7 +38,7 @@ printf '%s' "SELF-CONTAINED PROMPT HERE" | "$RUN" --cd /path/to/workspace
 
 Shared flags (`--model`, `--resume`, `--timeout` / `--no-timeout`) work as described in
 the parent–harness contract. Env equivalents: `CURSOR_SUBAGENT_MODEL`,
-`CURSOR_SUBAGENT_TIMEOUT`.
+`CURSOR_SUBAGENT_TIMEOUT`, `CURSOR_SUBAGENT_READ_ONLY=1` (for `--read-only`).
 
 `--cd` is required for every run. Pick effort by choosing a model slug, e.g.
 `--model grok-4.5-xhigh`.
@@ -70,6 +70,10 @@ tool is a different surface and does not honour this contract.
 - `--disable-auto-update` (harness runs must not self-update mid-spawn)
 - model from SKILL.md table (or `--model` / `CURSOR_SUBAGENT_MODEL`; not IDE pick)
 - `--trust --force --approve-mcps` (non-interactive)
+- `--read-only` is not supported: run.sh exits 2 before the CLI starts. `--mode ask`
+  without `--force`/`--approve-mcps` rejects edits, shell, web and MCP calls, but the
+  CLI still loads the user's MCP servers, so it can't meet the contract's "no MCP
+  servers". Use the claude or codex harness for read-only runs.
 - `--output-format stream-json` (filtered via `_shared/live-log.py`)
 - optional `--resume <session_id>` → `agent -p --resume <id>` (exact id)
 - stdin required (no bare `agent -p` — hang risk)

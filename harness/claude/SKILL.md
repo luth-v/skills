@@ -38,7 +38,8 @@ printf '%s' "SELF-CONTAINED PROMPT HERE" | "$RUN"
 
 Shared flags (`--model`, `--effort`, `--resume`, `--timeout` / `--no-timeout`) work as
 described in the parent–harness contract. Env equivalents:
-`CLAUDE_SUBAGENT_MODEL`, `CLAUDE_SUBAGENT_EFFORT`, `CLAUDE_SUBAGENT_TIMEOUT`.
+`CLAUDE_SUBAGENT_MODEL`, `CLAUDE_SUBAGENT_EFFORT`, `CLAUDE_SUBAGENT_TIMEOUT`,
+`CLAUDE_SUBAGENT_READ_ONLY=1` (for `--read-only`).
 
 Unique to this harness — prompt-cache TTL, default `1h`:
 
@@ -75,6 +76,12 @@ inline.
 - model/effort/cache TTL from SKILL.md table (or flags / `CLAUDE_SUBAGENT_*`)
 - `--tools default`
 - `--permission-mode bypassPermissions` (no interactive approve in `-p`)
+- `--read-only` replaces those two with `--restricted --tools "Read,Grep,Glob"
+  --strict-mcp-config --permission-mode dontAsk`. Scope: reads and searches only
+  inside its working dir (the process cwd); no shell, no edits, no web, no MCP servers
+  or claude.ai connectors; user/project/local settings and hooks are ignored. Auth
+  still works. Verified on claude 2.1.288: the `system/init` event lists exactly
+  `Glob`, `Grep`, `Read` and no `mcp_servers`.
 - `--output-format stream-json --verbose` (filtered via `_shared/live-log.py`)
 - optional `--resume <session_id>` → `claude -p --resume <id>` (exact id; sessions persist)
 - stdin required (no bare `claude -p` — hang risk)

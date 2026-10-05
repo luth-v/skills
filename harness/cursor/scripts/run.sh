@@ -15,11 +15,12 @@ MODEL="${CURSOR_SUBAGENT_MODEL:-}"
 TIMEOUT_SEC="${CURSOR_SUBAGENT_TIMEOUT:-$DEFAULT_TIMEOUT_SEC}"
 WORKDIR=""
 RESUME_ID=""
+READ_ONLY="${CURSOR_SUBAGENT_READ_ONLY:-0}"
 
 usage() {
   cat <<'EOF'
 Usage: run.sh [--model <alias>] [--cd <dir>] [--resume <session_id>]
-              [--timeout <seconds>] [--no-timeout]
+              [--timeout <seconds>] [--no-timeout] [--read-only]
 
 Prompt on stdin only.
   --model <alias>       Override model (else SKILL.md / CURSOR_SUBAGENT_MODEL)
@@ -28,6 +29,8 @@ Prompt on stdin only.
                         Exact id required — never bare --resume / `agent resume`.
   --timeout <seconds>   Kill the agent CLI after N seconds (exit 124)
   --no-timeout          Wait until the agent CLI finishes (same as --timeout 0)
+  --read-only           Not supported: exits 2 before the agent CLI starts
+                        (CURSOR_SUBAGENT_READ_ONLY=1)
 
 Live progress: stderr + $TMPDIR/agent-subagent/latest-cursor.log (LOG= path printed early).
 Session id: `SESSION=<session_id>` on stderr + log as soon as system/init arrives.
@@ -57,6 +60,10 @@ while [[ $# -gt 0 ]]; do
       TIMEOUT_SEC=0
       shift
       ;;
+    --read-only)
+      READ_ONLY=1
+      shift
+      ;;
     -h | --help)
       usage
       exit 0
@@ -68,6 +75,17 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ "$READ_ONLY" != 0 && "$READ_ONLY" != 1 ]]; then
+  echo "run.sh: invalid read-only value: '$READ_ONLY' (expected 0 or 1)" >&2
+  exit 2
+fi
+# Fail closed: ask mode without --force/--approve-mcps rejects edits, shell, web and
+# MCP calls, but the CLI still loads the user's MCP servers, and read-only means none.
+if [[ "$READ_ONLY" -eq 1 ]]; then
+  echo "run.sh: --read-only is not supported by the Cursor agent CLI (MCP servers still load); use the claude or codex harness" >&2
+  exit 2
+fi
 
 if [[ -z "$MODEL" ]]; then
   MODEL="$(skill_default "$SKILL_MD" model)"

@@ -67,6 +67,10 @@ inline.
 - `opencode2 run -m …#… --auto --format json --standalone`, with `--cd` applied as a
   process working-directory change
 - `--auto` for non-interactive permissions; no `--pure`
+- `--read-only` (or `OPENCODE_SUBAGENT_READ_ONLY=1`) exits 2 before OpenCode starts:
+  `opencode2 run` has no enforceable read-only mode (`--agent plan` still fetches URLs;
+  `--auto` approves anything not explicitly denied). Use claude or codex for read-only
+  work.
 - JSONL filtered via `_shared/live-log.py` with harness `opencode`
 - optional `--resume <session_id>` → `opencode2 run -s <id>` (exact id)
 - stdin required; `--cd` required and mapped to the process working directory

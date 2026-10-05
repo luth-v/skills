@@ -16,11 +16,13 @@ EFFORT="${OPENCODE_SUBAGENT_EFFORT:-}"
 TIMEOUT_SEC="${OPENCODE_SUBAGENT_TIMEOUT:-$DEFAULT_TIMEOUT_SEC}"
 WORKDIR=""
 RESUME_ID=""
+READ_ONLY="${OPENCODE_SUBAGENT_READ_ONLY:-0}"
 
 usage() {
   cat <<'EOF'
 Usage: run.sh [--model <provider/model>] [--effort <level>] --cd <dir>
               [--resume <session_id>] [--timeout <seconds>] [--no-timeout]
+              [--read-only]
 
 Prompt on stdin only.
   --model <provider/model> Override model (else SKILL.md / OPENCODE_SUBAGENT_MODEL).
@@ -32,6 +34,8 @@ Prompt on stdin only.
                           Exact id required — never --continue.
   --timeout <seconds>     Kill OpenCode after N seconds (exit 124)
   --no-timeout            Wait until OpenCode finishes (same as --timeout 0)
+  --read-only             Not supported: exits 2 before OpenCode starts
+                          (OPENCODE_SUBAGENT_READ_ONLY=1)
 
 Live progress: stderr + $TMPDIR/agent-subagent/latest-opencode.log (LOG= path printed early).
 Session id: `SESSION=<sessionID>` on stderr + log from the first event.
@@ -65,6 +69,10 @@ while [[ $# -gt 0 ]]; do
       TIMEOUT_SEC=0
       shift
       ;;
+    --read-only)
+      READ_ONLY=1
+      shift
+      ;;
     -h | --help)
       usage
       exit 0
@@ -76,6 +84,17 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ "$READ_ONLY" != 0 && "$READ_ONLY" != 1 ]]; then
+  echo "run.sh: invalid read-only value: '$READ_ONLY' (expected 0 or 1)" >&2
+  exit 2
+fi
+# Fail closed: `--agent plan` still fetches URLs and `--auto` approves anything not
+# explicitly denied, so opencode2 run has no enforceable read-only mode.
+if [[ "$READ_ONLY" -eq 1 ]]; then
+  echo "run.sh: --read-only is not supported by opencode2 run (no enforceable read-only mode); use the claude or codex harness" >&2
+  exit 2
+fi
 
 if [[ -z "$MODEL" ]]; then
   MODEL="$(skill_default "$SKILL_MD" model)"

@@ -39,7 +39,8 @@ printf '%s' "SELF-CONTAINED PROMPT HERE" | "$RUN" --cd /path/to/workspace
 
 Shared flags (`--model`, `--effort`, `--resume`, `--timeout` / `--no-timeout`) work as
 described in the parent–harness contract. Env equivalents: `CODEX_SUBAGENT_MODEL`,
-`CODEX_SUBAGENT_EFFORT`, `CODEX_SUBAGENT_TIMEOUT`.
+`CODEX_SUBAGENT_EFFORT`, `CODEX_SUBAGENT_TIMEOUT`, `CODEX_SUBAGENT_READ_ONLY=1` (for
+`--read-only`).
 
 `--cd` is required for every run. `--resume` takes the exact thread id from a prior
 run's `SESSION=` line.
@@ -68,6 +69,13 @@ inline.
 - `--ignore-user-config` (no `config.toml` for subagent runs; auth still uses
   `CODEX_HOME`)
 - `--dangerously-bypass-approvals-and-sandbox` (non-interactive)
+- `--read-only` replaces it with `-c sandbox_mode="read-only" -c approval_policy="never"
+  -c web_search="disabled"` plus `--disable` for apps, plugins, remote_plugin,
+  browser_use, browser_use_external, in_app_browser, computer_use, image_generation —
+  on both the fresh and the `resume` path (`exec resume` has no `--sandbox`). Scope:
+  codex may run shell commands inside its read-only, no-network sandbox and can read
+  outside `--cd`; writes and network fail. `--cd` must be a git repo (no bypass, so
+  codex's trusted-directory check applies).
 - `--json` streamed via `_shared/live-log.py`; `-o` kept as final-message fallback
 - optional `--resume <thread_id>` → `codex exec resume <id>` (exact id; no `--ephemeral`)
 - stdin required; `--cd` required

@@ -16,11 +16,12 @@ EFFORT="${CODEX_SUBAGENT_EFFORT:-}"
 TIMEOUT_SEC="${CODEX_SUBAGENT_TIMEOUT:-$DEFAULT_TIMEOUT_SEC}"
 WORKDIR=""
 RESUME_ID=""
+READ_ONLY="${CODEX_SUBAGENT_READ_ONLY:-0}"
 
 usage() {
   cat <<'EOF'
 Usage: run.sh [--model <alias>] [--effort <level>] [--cd <dir>] [--resume <session_id>]
-              [--timeout <seconds>] [--no-timeout]
+              [--timeout <seconds>] [--no-timeout] [--read-only]
 
 Prompt on stdin only.
   --model <alias>       Override model (else SKILL.md / CODEX_SUBAGENT_MODEL)
@@ -30,6 +31,8 @@ Prompt on stdin only.
                         Exact id required — never --last. Model/effort still applied.
   --timeout <seconds>   Kill codex after N seconds (exit 124)
   --no-timeout          Wait until codex finishes (same as --timeout 0)
+  --read-only           Read-only, no-network sandbox; shell allowed, no edits, no
+                        apps/browser/web search (CODEX_SUBAGENT_READ_ONLY=1)
 
 Live progress: stderr + $TMPDIR/agent-subagent/latest-codex.log (LOG= path printed early).
 Session id: `SESSION=<thread_id>` on stderr + log as soon as codex reports it.
@@ -63,6 +66,10 @@ while [[ $# -gt 0 ]]; do
       TIMEOUT_SEC=0
       shift
       ;;
+    --read-only)
+      READ_ONLY=1
+      shift
+      ;;
     -h | --help)
       usage
       exit 0
@@ -74,6 +81,11 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ "$READ_ONLY" != 0 && "$READ_ONLY" != 1 ]]; then
+  echo "run.sh: invalid read-only value: '$READ_ONLY' (expected 0 or 1)" >&2
+  exit 2
+fi
 
 if [[ -z "$MODEL" ]]; then
   MODEL="$(skill_default "$SKILL_MD" model)"
@@ -104,11 +116,31 @@ OUTPUT_MSG_FILE="$(mktemp)"
 RESULT_FILE="$(mktemp)"
 trap 'rm -f "$OUTPUT_MSG_FILE" "$RESULT_FILE"' EXIT
 
+# `codex exec resume` has no --sandbox flag; -c/--disable work on both paths.
+# --ignore-user-config already keeps user MCP servers off.
+if [[ "$READ_ONLY" -eq 1 ]]; then
+  PERMISSION_ARGS=(
+    -c 'sandbox_mode="read-only"'
+    -c 'approval_policy="never"'
+    -c 'web_search="disabled"'
+    --disable apps
+    --disable plugins
+    --disable remote_plugin
+    --disable browser_use
+    --disable browser_use_external
+    --disable in_app_browser
+    --disable computer_use
+    --disable image_generation
+  )
+else
+  PERMISSION_ARGS=(--dangerously-bypass-approvals-and-sandbox)
+fi
+
 CODEX_COMMON=(
   -m "$MODEL"
   -c "model_reasoning_effort=$EFFORT"
   --ignore-user-config
-  --dangerously-bypass-approvals-and-sandbox
+  "${PERMISSION_ARGS[@]}"
   --json
   -o "$OUTPUT_MSG_FILE"
 )

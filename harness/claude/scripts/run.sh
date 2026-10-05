@@ -17,11 +17,13 @@ CACHE_TTL="${CLAUDE_SUBAGENT_CACHE_TTL:-}"
 CACHE_TTL_FLAG_SET=0
 TIMEOUT_SEC="${CLAUDE_SUBAGENT_TIMEOUT:-$DEFAULT_TIMEOUT_SEC}"
 RESUME_ID=""
+READ_ONLY="${CLAUDE_SUBAGENT_READ_ONLY:-0}"
 
 usage() {
   cat <<'EOF'
 Usage: run.sh [--model <alias>] [--effort <level>] [--cache-ttl <1h|5m>]
               [--resume <session_id>] [--timeout <seconds>] [--no-timeout]
+              [--read-only]
 
 Prompt on stdin only.
   --model <alias>       Override model (else SKILL.md / CLAUDE_SUBAGENT_MODEL)
@@ -32,6 +34,8 @@ Prompt on stdin only.
                         Exact id required. Same model/effort/tool flags as fresh.
   --timeout <seconds>   Kill claude after N seconds (exit 124)
   --no-timeout          Wait until claude finishes (same as --timeout 0)
+  --read-only           Read/search only: Read,Grep,Glob confined to the working dir;
+                        no shell, no edits, no web, no MCP (CLAUDE_SUBAGENT_READ_ONLY=1)
 
 Live progress: stderr + $TMPDIR/agent-subagent/latest-claude.log (LOG= path printed early).
 Session id: `SESSION=<session_id>` on stderr + log as soon as system/init arrives.
@@ -66,6 +70,10 @@ while [[ $# -gt 0 ]]; do
       TIMEOUT_SEC=0
       shift
       ;;
+    --read-only)
+      READ_ONLY=1
+      shift
+      ;;
     -h | --help)
       usage
       exit 0
@@ -77,6 +85,11 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ "$READ_ONLY" != 0 && "$READ_ONLY" != 1 ]]; then
+  echo "run.sh: invalid read-only value: '$READ_ONLY' (expected 0 or 1)" >&2
+  exit 2
+fi
 
 if [[ -z "$MODEL" ]]; then
   MODEL="$(skill_default "$SKILL_MD" model)"
@@ -121,12 +134,20 @@ fi
 # shellcheck source=/dev/null
 source "$SHARED_DIR/setup-live-log.sh" claude
 
+# --restricted confines file tools to the working dir, ignores user/project/local
+# settings (hooks included) and refuses bypassPermissions; --tools alone would still
+# load user MCP servers and claude.ai connectors, so --strict-mcp-config drops them.
+if [[ "$READ_ONLY" -eq 1 ]]; then
+  PERMISSION_ARGS=(--restricted --tools "Read,Grep,Glob" --strict-mcp-config --permission-mode dontAsk)
+else
+  PERMISSION_ARGS=(--tools default --permission-mode bypassPermissions)
+fi
+
 CLAUDE_ARGS=(
   -p
   --model "$MODEL"
   --effort "$EFFORT"
-  --tools default
-  --permission-mode bypassPermissions
+  "${PERMISSION_ARGS[@]}"
   --output-format stream-json
   --verbose
 )

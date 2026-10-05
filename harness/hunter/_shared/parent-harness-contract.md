@@ -33,6 +33,11 @@ Common flags, all four runners:
 | `--resume <id>`     | Cold resume of an **exact** session id from a prior `SESSION=` line  |
 | `--timeout <secs>`  | Optional wall cap                                                    |
 | `--no-timeout`      | Default behaviour — wait until the CLI finishes                      |
+| `--read-only`       | Read and search only: no filesystem writes, no network, no MCP servers or connectors. Scope per harness in its SKILL.md; a runner that cannot enforce it exits 2 before the CLI starts |
+
+`--read-only` has an env equivalent, `<HARNESS>_SUBAGENT_READ_ONLY=1`, for humans. A
+parent that needs the guarantee passes the **flag**: an older `run.sh` rejects an
+unknown flag (exit 2, fails closed) but silently ignores an unknown env var.
 
 Pass `--cd` with the workspace root (or a tighter scope the user named) for codex,
 cursor, and opencode. Claude Code resolves its own working directory, so `claude`
