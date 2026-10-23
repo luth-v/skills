@@ -18,12 +18,13 @@ CACHE_TTL_FLAG_SET=0
 TIMEOUT_SEC="${CLAUDE_SUBAGENT_TIMEOUT:-$DEFAULT_TIMEOUT_SEC}"
 RESUME_ID=""
 READ_ONLY="${CLAUDE_SUBAGENT_READ_ONLY:-0}"
+EDIT_ONLY="${CLAUDE_SUBAGENT_EDIT_ONLY:-0}"
 
 usage() {
   cat <<'EOF'
 Usage: run.sh [--model <alias>] [--effort <level>] [--cache-ttl <1h|5m>]
               [--resume <session_id>] [--timeout <seconds>] [--no-timeout]
-              [--read-only]
+              [--read-only | --edit-only]
 
 Prompt on stdin only.
   --model <alias>       Override model (else SKILL.md / CLAUDE_SUBAGENT_MODEL)
@@ -36,6 +37,9 @@ Prompt on stdin only.
   --no-timeout          Wait until claude finishes (same as --timeout 0)
   --read-only           Read/search only: Read,Grep,Glob confined to the working dir;
                         no shell, no edits, no web, no MCP (CLAUDE_SUBAGENT_READ_ONLY=1)
+  --edit-only           Read/search and edit only: Read,Grep,Glob,Edit,Write confined to the
+                        working dir; no shell (so no git), no web, no MCP
+                        (CLAUDE_SUBAGENT_EDIT_ONLY=1)
 
 Live progress: stderr + $TMPDIR/agent-subagent/latest-claude.log (LOG= path printed early).
 Session id: `SESSION=<session_id>` on stderr + log as soon as system/init arrives.
@@ -74,6 +78,10 @@ while [[ $# -gt 0 ]]; do
       READ_ONLY=1
       shift
       ;;
+    --edit-only)
+      EDIT_ONLY=1
+      shift
+      ;;
     -h | --help)
       usage
       exit 0
@@ -88,6 +96,14 @@ done
 
 if [[ "$READ_ONLY" != 0 && "$READ_ONLY" != 1 ]]; then
   echo "run.sh: invalid read-only value: '$READ_ONLY' (expected 0 or 1)" >&2
+  exit 2
+fi
+if [[ "$EDIT_ONLY" != 0 && "$EDIT_ONLY" != 1 ]]; then
+  echo "run.sh: invalid edit-only value: '$EDIT_ONLY' (expected 0 or 1)" >&2
+  exit 2
+fi
+if [[ "$READ_ONLY" -eq 1 && "$EDIT_ONLY" -eq 1 ]]; then
+  echo "run.sh: --read-only and --edit-only are exclusive" >&2
   exit 2
 fi
 
@@ -137,8 +153,13 @@ source "$SHARED_DIR/setup-live-log.sh" claude
 # --restricted confines file tools to the working dir, ignores user/project/local
 # settings (hooks included) and refuses bypassPermissions; --tools alone would still
 # load user MCP servers and claude.ai connectors, so --strict-mcp-config drops them.
+# --edit-only adds Edit,Write under acceptEdits: dontAsk denies every edit, and
+# --restricted still refuses writes outside the working dir, through a symlink out of
+# it, and to sensitive files (.git, .npmrc, .claude/settings.json).
 if [[ "$READ_ONLY" -eq 1 ]]; then
   PERMISSION_ARGS=(--restricted --tools "Read,Grep,Glob" --strict-mcp-config --permission-mode dontAsk)
+elif [[ "$EDIT_ONLY" -eq 1 ]]; then
+  PERMISSION_ARGS=(--restricted --tools "Read,Grep,Glob,Edit,Write" --strict-mcp-config --permission-mode acceptEdits)
 else
   PERMISSION_ARGS=(--tools default --permission-mode bypassPermissions)
 fi

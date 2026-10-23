@@ -39,7 +39,7 @@ printf '%s' "SELF-CONTAINED PROMPT HERE" | "$RUN"
 Shared flags (`--model`, `--effort`, `--resume`, `--timeout` / `--no-timeout`) work as
 described in the parent–harness contract. Env equivalents:
 `CLAUDE_SUBAGENT_MODEL`, `CLAUDE_SUBAGENT_EFFORT`, `CLAUDE_SUBAGENT_TIMEOUT`,
-`CLAUDE_SUBAGENT_READ_ONLY=1` (for `--read-only`).
+`CLAUDE_SUBAGENT_READ_ONLY=1` (for `--read-only`), `CLAUDE_SUBAGENT_EDIT_ONLY=1` (for `--edit-only`).
 
 Unique to this harness — prompt-cache TTL, default `1h`:
 
@@ -82,6 +82,14 @@ inline.
   or claude.ai connectors; user/project/local settings and hooks are ignored. Auth
   still works. Verified on claude 2.1.288: the `system/init` event lists exactly
   `Glob`, `Grep`, `Read` and no `mcp_servers`.
+- `--edit-only` replaces them with `--restricted --tools "Read,Grep,Glob,Edit,Write"
+  --strict-mcp-config --permission-mode acceptEdits`: `--read-only` plus file edits
+  inside the working dir, for a parent that commits and pushes the result itself. No
+  shell (so no git or `gh`), no web, no MCP. `dontAsk` would deny every Edit and Write,
+  hence `acceptEdits`. Verified on claude 2.1.309: edits inside the working dir go
+  through; a Write to an absolute path outside it, through a symlink pointing out of
+  it, or to `.git`, `.npmrc` or `.claude/settings.json` is denied. `--read-only` with
+  `--edit-only` exits 2.
 - `--output-format stream-json --verbose` (filtered via `_shared/live-log.py`)
 - optional `--resume <session_id>` → `claude -p --resume <id>` (exact id; sessions persist)
 - stdin required (no bare `claude -p` — hang risk)
