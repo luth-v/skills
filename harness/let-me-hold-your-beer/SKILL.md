@@ -3,9 +3,9 @@ name: let-me-hold-your-beer
 description: >-
   Post-grill pipeline run on T3 Code delegated tasks: handoff → thermo +
   architecture pre-review → optional human gate → impl → thermo +
-  code-review-matt post-review → optional fix. After a grilled plan when the
-  parent runs in T3 Code, or /let-me-hold-your-beer.
-argument-hint: "[STAGE=driverKind model [effort] | HANDOFF=/path RESUME=stage]"
+  code-review-matt post-review → optional fix → visual PR. After a grilled plan
+  when the parent runs in T3 Code, or /let-me-hold-your-beer.
+argument-hint: "[STAGE=driverKind model [effort] | VISUALIZE=off | GATE=auto|assume | DRAFT=yes | WORKSPACE=/abs/path | HANDOFF=/path RESUME=stage]"
 ---
 
 # Let Me Hold Your Beer
@@ -25,12 +25,13 @@ Hold requires T3 Code. Without the `t3-code` tools (`orchestrator_capabilities`,
 
 ## Defaults (invoke lines override)
 
-| Stage            | Value                                |
-| ---------------- | ------------------------------------ |
-| `PRE_REVIEW`     | `claudeAgent claude-opus-5-5 xhigh`  |
-| `IMPLEMENTATION` | `claudeAgent claude-opus-5-5 medium` |
-| `POST_REVIEW`    | `codex gpt-6.1-sol xhigh`            |
-| `FIX`            | `claudeAgent claude-opus-5-5 medium` |
+| Stage            | Value                                                 |
+| ---------------- | ----------------------------------------------------- |
+| `PRE_REVIEW`     | `claudeAgent claude-opus-5-5 xhigh`                   |
+| `IMPLEMENTATION` | `claudeAgent claude-opus-5-5 medium`                  |
+| `POST_REVIEW`    | `claudeAgent claude-opus-5-5 xhigh`                   |
+| `FIX`            | `claudeAgent claude-opus-5-5 medium`                  |
+| `VISUALIZE`      | `claudeAgent claude-opus-5-5 xhigh`, or `off` to skip |
 
 These mirror Cook's Defaults. Shape: `driverKind model [effort]`, where
 `driverKind` is a T3 provider driver (`claudeAgent`, `codex`, `opencode`, …).
@@ -42,10 +43,19 @@ HANDOFF=/path/to/handoff.md
 RESUME=implementation
 ```
 
-`RESUME`: `handoff`|`pre_review`|`implementation`|`post_review`|`fix`
+`RESUME`: `handoff`|`pre_review`|`implementation`|`post_review`|`fix`|`visualize`
 
 - `post_review` — run POST_REVIEW, then FIX if its verdict is `NEEDS_FIX`.
 - `fix` — run FIX from the handoff findings, without re-running POST_REVIEW.
+- `visualize` — run VISUALIZE only.
+
+Run keys:
+
+- `GATE=auto|assume` — the Human gate mode. `auto` (default) or `assume`;
+  anything else → stop and ask.
+- `DRAFT=yes` — Visualize opens the PR as a draft.
+- `WORKSPACE=/abs/path` — the checkout the whole Hold works in. Default: the
+  repo root of the parent's cwd.
 
 ## Spawning a stage
 
@@ -81,8 +91,12 @@ Each step below lists what "done" looks like. Move on when it holds.
    them, redact secrets and personal data, and end with a `## Suggested skills`
    section. `/handoff` is user-only (`disable-model-invocation`), so the parent
    writes this file itself rather than calling it.
-   Done when an absolute handoff path exists and is recorded for the rest of the
-   Hold.
+   Record `WORKSPACE: <abs path>` in the handoff, from `WORKSPACE=` or else the
+   repo root of the parent's cwd. From then on every parent git command runs as
+   `git -C "$WORKSPACE"`, and every stage prompt says "work only inside the
+   handoff's `WORKSPACE:`". T3 delegated tasks get WORKSPACE through the prompt
+   only.
+   Done when the absolute handoff path and its `WORKSPACE:` line exist.
 
 2. **PRE_REVIEW.** One stage agent runs two passes in order. Shared contract:
    treat the handoff as a **proposed implementation**, not code to write; rewrite
@@ -94,23 +108,31 @@ Each step below lists what "done" looks like. Move on when it holds.
      the proposal needs to stay sound → absorb into the handoff. Every other
      candidate → one short entry under `### Deferred architecture candidates` in
      the handoff, not implemented. Leave `CONTEXT.md` and ADRs untouched.
+   - Both passes: each absorbed change that needs a human call becomes one entry
+     under `### Assumed decisions`: what was assumed, the alternative, and why.
+     A handoff `## Scope`, when present, outranks absorbing: a deepening outside
+     it goes to `### Deferred architecture candidates`.
    - Pass B ends stdout **and** the handoff with exactly `GATE: REVIEW` or
      `GATE: CONTINUE`, covering both passes: `REVIEW` when either pass raised a
-     blocker or absorbed a change that needs a human call.
+     blocker or `### Assumed decisions` is non-empty.
    Done when the handoff is rewritten by both passes, nothing was implemented,
    and the same gate line appears in both places. Run no re-handoff or second
    pre-review unless the user asks.
 
-3. **Human gate (only on `GATE: REVIEW`).** On `GATE: REVIEW`, stop, summarize
-   the blockers and deferred architecture candidates from the handoff, and wait
-   for the user's explicit go-ahead; edits the user asks for go into the handoff
-   before IMPLEMENTATION. On `GATE: CONTINUE`, go straight to IMPLEMENTATION.
+3. **Human gate.** Mode comes from `GATE=`.
+   - `auto`: on `GATE: REVIEW`, stop, summarize `### Assumed decisions`, the
+     blockers, and the deferred architecture candidates from the handoff, and
+     wait for the user's explicit go-ahead. Apply the edits the user asks for to
+     the handoff and remove the Assumed decisions entries the user settled,
+     before IMPLEMENTATION. On `GATE: CONTINUE`, go straight to IMPLEMENTATION.
+   - `assume`: never pause. Go straight to IMPLEMENTATION and leave
+     `### Assumed decisions` in place for Visualize.
    Done when the user has said go, or the run continued unpaused on
-   `GATE: CONTINUE`.
+   `GATE: CONTINUE` or under `assume`.
 
 4. **IMPLEMENTATION.** Before spawning, if the handoff has no `BASE:` line,
-   record `BASE: <git rev-parse HEAD>` in it (plus `BASE_DIRTY: yes` when the
-   worktree already had changes). Then spawn. The prompt must say: you are the
+   record `BASE: $(git -C "$WORKSPACE" rev-parse HEAD)` in it (plus
+   `BASE_DIRTY: yes` when WORKSPACE already had changes). Then spawn. The prompt must say: you are the
    implementer; edit code yourself; the stage clause; do not run this skill;
    scope is the handoff only; an open question means stop and report it.
    Done when the implementer reports finished work within handoff scope, with
@@ -122,8 +144,8 @@ Each step below lists what "done" looks like. Move on when it holds.
    - Pass A: `/thermo-nuclear-code-quality-review`; findings under `### Thermo`.
      No verdict line.
    - Pass B: `/code-review-matt` in pipeline mode. The fixed point is the
-     handoff's `BASE:`; the diff is `git diff <BASE>` (working tree) plus
-     untracked files from `git status --porcelain`. The spec is the handoff
+     handoff's `BASE:`; the diff, run in WORKSPACE, is `git diff <BASE>`
+     (working tree) plus untracked files from `git status --porcelain`. The spec is the handoff
      itself — skip issue-tracker lookup and never ask the user. Run the Standards
      and Spec axes one after the other inline, appended as `### Standards` and
      `### Spec`, not merged or reranked. `BASE:` missing → stop and report.
@@ -138,14 +160,27 @@ Each step below lists what "done" looks like. Move on when it holds.
 
 6. **FIX (only on `NEEDS_FIX`).** Spawn it once. Tell it to fix the must-fix
    findings in the handoff's post-review sections, stay within handoff scope,
-   skip re-review, follow the stage clause, and append the fix outcome and any
-   leftovers to the handoff. Leftovers are an acceptable outcome. On `CLEAN`,
-   skip this step.
+   skip re-review, follow the stage clause, and append the fix outcome to the
+   handoff, with any leftovers under a `### Leftovers` heading. Leftovers are
+   an acceptable outcome. On `CLEAN`, skip this step.
    Done when FIX ran and appended its outcome, or POST_REVIEW returned `CLEAN`.
 
-7. **Report.** Tell the user the handoff path and outcome. Create no commit or
-   pull request.
-   Done when the user has the path and result in hand.
+7. **VISUALIZE (skipped when `VISUALIZE=off`).** First, when the handoff has
+   `BASE_DIRTY: yes` and no `BASE_DIRTY_DECISION:` line: under `auto`, ask the
+   user how to handle the earlier changes and record the answer as
+   `BASE_DIRTY_DECISION: <answer>` in the handoff; under `assume`, stop with the
+   stage failure `workspace dirty`. Then spawn it once, fresh. The
+   prompt: run `/visualize-pr HANDOFF=<path>` (plus `--draft` when `DRAFT=yes`)
+   inside the handoff's `WORKSPACE:`, follow the stage clause, and end stdout on
+   `PR: <url>`. `/visualize-pr` owns commit, branch, push, and the PR body.
+   Done when the stage's last line is `PR: <url>`, or `VISUALIZE=off` skipped
+   the step.
+
+8. **Report.** Tell the user the handoff path and outcome, plus the PR URL when
+   Visualize ran, and link the PR with the PR-linking tool when one is
+   available. With `VISUALIZE=off`, nothing is committed and no PR is opened.
+   Done when the user has the path, the result, and the PR URL when Visualize
+   ran.
 
 A stage failure stops the Hold: note the failure on the handoff and report it
 without retrying.

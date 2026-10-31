@@ -2,7 +2,7 @@
 
 Agent install kit: cross-harness runners (`claude` / `codex` / `cursor` /
 `opencode`), shared live-log helpers, Cook (`/let-them-cook`), its
-T3 Code sibling Hold (`/let-me-hold-your-beer`), and Hunter (`/hunter`).
+T3 Code sibling Hold (`/let-me-hold-your-beer`), and Patrol (`/patrol`).
 
 ## Install the skills
 
@@ -28,8 +28,13 @@ npx skills add luth-v/skills --skill bruh -g -y
 additionally expects `thermo-nuclear-code-quality-review`.
 `let-me-hold-your-beer` runs the same pipeline as fresh T3 Code delegated tasks;
 it expects the same skills and does not need the CLI harness skills.
-`/hunter` files at most one GitHub take ticket per invoke and expects the CLI
-harness skills (it spawns Warden through `run.sh`).
+Both end on a Visualize stage that runs `/visualize-pr` (in `engineering/`) to
+commit the reviewed work and open a visual PR; `VISUALIZE=off` skips it.
+`GATE=assume` never pauses at the Human gate and leaves each pre-review call in the
+handoff as an Assumed decision for the PR's reviewer.
+`/patrol` runs one defect patrol per invoke and expects the CLI harness skills: its
+Guard and HQ always spawn through `run.sh --read-only`. A Night patrol then runs
+Hold (in T3 Code) or Cook with `GATE=assume DRAFT=yes`.
 
 ### skills.sh install
 
@@ -48,6 +53,7 @@ npx skills add luth-v/skills --all -g
 ### Prerequisites (not installed here)
 
 - **`/thermo-nuclear-code-quality-review`** — required by Cook and Hold
+- **`/visualize-pr`** — Visualize stage of Cook and Hold (this repo, `engineering/`)
 - **`/improve-codebase-architecture`**, **`/code-review-matt`** — required by Cook and Hold
 - **T3 Code** — Hold runs only as a T3 Code thread (needs the `t3-code` MCP tools)
 - **CLI auth** — `claude`, `codex`, `agent`/`cursor-agent`, and/or `opencode2` on PATH as needed
@@ -85,7 +91,9 @@ harness/
     session-reuse.md             cold-resume rules for cook stages
   let-me-hold-your-beer/         /let-me-hold-your-beer T3 Code pipeline
     SKILL.md                      self-contained; no _shared/ runtime
-  hunter/            /hunter one-tick defect hunter (Warden via a Harness)
+  patrol/            /patrol defect patrol (Guard and HQ via a Harness) + _shared/
+engineering/
+  visualize-pr/      /visualize-pr commit + visual PR body + explainer
 ```
 
 Every harness `SKILL.md` points at `_shared/parent-harness-contract.md` for the rules

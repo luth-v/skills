@@ -2,9 +2,9 @@
 name: let-them-cook
 description: >-
   Post-grill pipeline: handoff → thermo + architecture pre-review → human gate →
-  impl → thermo + code-review-matt post-review → optional fix. After a grilled
-  plan, or /let-them-cook.
-argument-hint: "[STAGE=harness model [effort] | GATE=always|auto | CACHE_TTL=1h|5m | HANDOFF=/path RESUME=stage]"
+  impl → thermo + code-review-matt post-review → optional fix → visual PR. After
+  a grilled plan, or /let-them-cook.
+argument-hint: "[STAGE=harness model [effort] | VISUALIZE=off | GATE=always|auto|assume | DRAFT=yes | WORKSPACE=/abs/path | CACHE_TTL=1h|5m | HANDOFF=/path RESUME=stage]"
 ---
 
 # Let Them Cook
@@ -53,16 +53,18 @@ helpers, or these limits verbatim when it does.
 
 ## Defaults (invoke lines override)
 
-| Stage                   | Value                                     |
-| ----------------------- | ----------------------------------------- |
-| `PRE_REVIEW`            | `claude claude-opus-5-5 xhigh`            |
-| `PRE_REVIEW_HELPER`     | `claude claude-opus-5-5 medium`           |
-| `IMPLEMENTATION`        | `claude claude-opus-5-5 medium`           |
-| `IMPLEMENTATION_HELPER` | `claude claude-opus-5-5 medium`           |
-| `POST_REVIEW`           | `codex gpt-6.1-sol xhigh`                 |
-| `POST_REVIEW_HELPER`    | `codex gpt-6.1-sol medium`                |
-| `FIX`                   | `claude claude-opus-5-5 medium`           |
-| `FIX_HELPER`            | `claude claude-opus-5-5 medium`           |
+| Stage                   | Value                                            |
+| ----------------------- | ------------------------------------------------ |
+| `PRE_REVIEW`            | `claude claude-opus-5-5 xhigh`                   |
+| `PRE_REVIEW_HELPER`     | `claude claude-opus-5-5 medium`                  |
+| `IMPLEMENTATION`        | `claude claude-opus-5-5 medium`                  |
+| `IMPLEMENTATION_HELPER` | `claude claude-opus-5-5 medium`                  |
+| `POST_REVIEW`           | `claude claude-opus-5-5 xhigh`                   |
+| `POST_REVIEW_HELPER`    | `claude claude-opus-5-5 medium`                  |
+| `FIX`                   | `claude claude-opus-5-5 medium`                  |
+| `FIX_HELPER`            | `claude claude-opus-5-5 medium`                  |
+| `VISUALIZE`             | `claude claude-opus-5-5 xhigh`, or `off` to skip |
+| `VISUALIZE_HELPER`      | `claude claude-opus-5-5 medium`                  |
 
 Shape: `harness model [effort]` — `claude`|`codex`|`cursor`|`opencode`.
 
@@ -79,11 +81,16 @@ HANDOFF=/path/to/handoff.md
 RESUME=implementation
 ```
 
-`RESUME`: `handoff`|`pre_review`|`implementation`|`post_review`|`fix`
+`RESUME`: `handoff`|`pre_review`|`implementation`|`post_review`|`fix`|`visualize`
 
 - `post_review` — review only. The parent then spawns `FIX` if the handoff / `VERDICT`
   says `NEEDS_FIX`.
 - `fix` — spawn FIX from the handoff findings; skip re-running POST_REVIEW.
+- `visualize` — spawn VISUALIZE only.
+
+Run keys: `GATE=` (see **Human gate**), `DRAFT=yes` (Visualize opens the PR as a
+draft), and `WORKSPACE=/abs/path` (the checkout the whole cook works in; default: the
+repo root of the parent's cwd).
 
 ## Flow
 
@@ -96,7 +103,15 @@ Each step below lists what "done" looks like. Move on when it holds.
    them, redact secrets and personal data, and end with a `## Suggested skills`
    section. `/handoff` is user-only (`disable-model-invocation`), so the parent
    writes this file itself rather than calling it.
-   Done when an absolute handoff path exists and is recorded for the rest of the cook.
+   Record `WORKSPACE: <abs path>` in the handoff, from `WORKSPACE=` or else the repo
+   root of the parent's cwd. From then on:
+   - every parent git command runs as `git -C "$WORKSPACE"`;
+   - every stage prompt says "work only inside the handoff's `WORKSPACE:`";
+   - every `run.sh` spawn, at every stage, takes `--cd "$WORKSPACE"` for codex,
+     cursor, and opencode, and runs from `cd "$WORKSPACE" && …` for claude (see the
+     contract);
+   - native spawns get WORKSPACE through the prompt only.
+   Done when the absolute handoff path and its `WORKSPACE:` line exist.
 
 2. **PRE_REVIEW.** Two passes in one stage, same triple: pass A runs
    `/thermo-nuclear-code-quality-review`, pass B `/improve-codebase-architecture`.
@@ -119,31 +134,40 @@ Each step below lists what "done" looks like. Move on when it holds.
      → absorb into the handoff. Everything else → a `### Deferred architecture
      candidates` list in the handoff, not implemented. Do not edit `CONTEXT.md` or
      ADRs.
+   - Both passes: write each absorbed change that needs a human call as one entry
+     under `### Assumed decisions`: what was assumed, the alternative, and why. A
+     handoff `## Scope`, when present, outranks absorbing: a deepening outside it
+     goes to `### Deferred architecture candidates`.
    - Pass B ends stdout and the handoff with exactly `GATE: REVIEW` or
      `GATE: CONTINUE`, covering both passes: `REVIEW` when either pass raised a
-     blocker or absorbed a change that needs a human call.
+     blocker or `### Assumed decisions` is non-empty.
    Done when the handoff is rewritten by both passes, nothing was implemented, and
    one gate line is present. No re-handoff or second pre-review unless the user asks.
 
-3. **Human gate.** Mode comes from the invoke line: `GATE=always` (default) or
-   `GATE=auto`; anything else → stop and ask.
+3. **Human gate.** Mode comes from the invoke line: `GATE=always` (default),
+   `GATE=auto`, or `GATE=assume`; anything else → stop and ask.
    - `always`: stop after every PRE_REVIEW, whatever its gate line. Open the HTML
      report (`xdg-open` / `open` / `start`) and give the human a short summary: what
-     each pass changed versus the grilled plan, any scope it added, the deferred
-     architecture candidates, and PRE_REVIEW's own gate line as a hint ("pre-review
-     says CONTINUE"). Wait for an explicit go-ahead; edits the human asks for go into
-     the handoff before IMPLEMENTATION.
-   - `auto`: follow PRE_REVIEW's line. `GATE: REVIEW` → stop, summarize the blockers,
-     and wait for the go-ahead. `GATE: CONTINUE` → go straight to IMPLEMENTATION with
-     no pause. The parent never invents a gate in this mode.
-   Done when the user has said go, or `auto` continued unpaused on `GATE: CONTINUE`.
+     each pass changed versus the grilled plan, any scope it added, `### Assumed
+     decisions`, the deferred architecture candidates, and PRE_REVIEW's own gate line
+     as a hint ("pre-review says CONTINUE"). Wait for an explicit go-ahead.
+   - `auto`: follow PRE_REVIEW's line. `GATE: REVIEW` → stop, summarize `### Assumed
+     decisions`, the blockers, and the deferred candidates, and wait for the
+     go-ahead. `GATE: CONTINUE` → go straight to IMPLEMENTATION with no pause. The
+     parent never invents a gate in this mode.
+   - `assume`: never pause. Go straight to IMPLEMENTATION and leave `### Assumed
+     decisions` in place for Visualize.
+   On a go-ahead, apply the edits the human asks for to the handoff and remove the
+   Assumed decisions entries the human settled, before IMPLEMENTATION.
+   Done when the user has said go, `auto` continued unpaused on `GATE: CONTINUE`, or
+   `assume` continued unpaused.
 
 4. **IMPLEMENTATION.** Before spawning, if the handoff has no `BASE:` line, record
-   `BASE: <git rev-parse HEAD>` in it (plus `BASE_DIRTY: yes` when the worktree
-   already had changes). POST_REVIEW diffs against it. Then spawn. Freeform prompt, and it must say: you are the
-   implementer — edit code yourself; no nested agents (or the helper limits when this
-   stage has helpers); do not re-run this skill; scope is the handoff only; an open
-   question means stop and report it. Pass `--cd` for codex/cursor/opencode.
+   `BASE: $(git -C "$WORKSPACE" rev-parse HEAD)` in it (plus `BASE_DIRTY: yes` when
+   WORKSPACE already had changes). POST_REVIEW diffs against it. Then spawn.
+   Freeform prompt, and it must say: you are the implementer — edit code yourself; no
+   nested agents (or the helper limits when this stage has helpers); do not re-run
+   this skill; scope is the handoff only; an open question means stop and report it.
    Done when the implementer reports finished work within handoff scope, with any open
    question surfaced or an explicit "none".
 
@@ -155,9 +179,10 @@ Each step below lists what "done" looks like. Move on when it holds.
    the handoff, no fixing, no nesting (or the helper limits when this stage has
    helpers).
    - Pass A: thermo findings under `### Thermo`. No verdict line.
-   - Pass B, pipeline mode: the fixed point is the handoff's `BASE:`. The cook never
-     commits, so the diff is `git diff <BASE>` (working tree) plus untracked files
-     from `git status --porcelain`, not the three-dot range. The spec is the handoff
+   - Pass B, pipeline mode: the fixed point is the handoff's `BASE:`. Nothing is
+     committed before Visualize, so the diff, run in WORKSPACE, is `git diff <BASE>`
+     (working tree) plus untracked files from `git status --porcelain`, not the
+     three-dot range. The spec is the handoff
      itself — skip issue-tracker lookup and never ask the user. Run the Standards and
      Spec axes as parallel native subagents only when this stage has helpers;
      otherwise run them one after the other inline. Append them as `### Standards`
@@ -175,17 +200,36 @@ Each step below lists what "done" looks like. Move on when it holds.
 6. **FIX (only on `NEEDS_FIX`).** Spawn once (defaults or `FIX=`). Prompt: fix the
    must-fix findings in the handoff post-review sections; handoff-only scope; no re-review; no
    nesting (or the helper limits when this stage has helpers); append the fix outcome
-   and any leftovers to the handoff. Leftovers are an acceptable outcome, not a stage
-   failure. `CLEAN` → skip this step.
+   to the handoff, with any leftovers under a `### Leftovers` heading. Leftovers are
+   an acceptable outcome, not a stage failure. `CLEAN` → skip this step.
    Done when the taken branch is complete: FIX ran and appended its outcome, or the
    verdict was `CLEAN`.
 
-7. **Report.** Tell the user the handoff path and the outcome. No commit, no PR.
-   Done when the user has the path and the result in hand.
+7. **VISUALIZE (skipped when `VISUALIZE=off`).** First, when the handoff has
+   `BASE_DIRTY: yes` and no `BASE_DIRTY_DECISION:` line: under `always` or `auto`,
+   ask the human how to handle the earlier changes and record the answer as
+   `BASE_DIRTY_DECISION: <answer>` in the handoff; under `assume`, stop with the
+   stage failure `workspace dirty`. Then spawn once, fresh (defaults or
+   `VISUALIZE=`). Prompt: run `/visualize-pr HANDOFF=<path>` (plus `--draft` when
+   `DRAFT=yes`) inside the handoff's `WORKSPACE:`; no nesting (or the helper limits
+   when this stage has helpers); end stdout on `PR: <url>`. `/visualize-pr` is
+   user-invoked, so name it with the **loading rule**: load `/visualize-pr` with
+   your skill tool; if it is not available, read
+   `~/.agents/skills/visualize-pr/SKILL.md` and follow it; if that is missing too,
+   stop and report. A `run.sh` spawn puts the `/visualize-pr` slash line first on
+   stdin instead. `/visualize-pr` owns commit, branch, push, and
+   the PR body.
+   Done when the stage's last line is `PR: <url>`, or `VISUALIZE=off` skipped the
+   step.
+
+8. **Report.** Tell the user the handoff path and the outcome, plus the PR URL when
+   Visualize ran. With `VISUALIZE=off`, nothing is committed and no PR is opened.
+   Done when the user has the path, the result, and the PR URL when Visualize ran.
 
 **Session-reuse gate — every `run.sh` spawn in steps 2/4/5/6** (pass A for the
 two-pass stages; pass B always resumes its own pass A). Native spawns skip this gate —
-always fresh. Before spawning, scan the
+always fresh. VISUALIZE (step 7) sits outside the gate: it is always a fresh spawn and
+never resumes an earlier session. Before spawning, scan the
 handoff's `## Pipeline sessions` bottom-up for an earlier `status: ok` entry matching
 this stage's harness + model + effort. Match → announce `resuming <harness> session
 <id> for <STAGE>` and spawn with `--resume <id>` plus the hybrid resume prompt. No
