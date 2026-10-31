@@ -1,5 +1,7 @@
 # Helper agents in cook stages
 
+> Archived with Cook by ADR-0005; Beer stages stay flat.
+
 `/let-them-cook` used to allow exactly one level of orchestration: the parent spawned
 stages and every stage prompt said "no nested agents". Stage agents doing real work
 (implementation especially) want to fan out, so a cook stage agent may now spawn

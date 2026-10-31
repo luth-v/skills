@@ -3,7 +3,7 @@
 set -euo pipefail
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILLS=(claude codex cursor opencode let-them-cook patrol)
+SKILLS=(claude codex cursor opencode)
 
 for name in "${SKILLS[@]}"; do
   dest="$HARNESS_DIR/$name/_shared"

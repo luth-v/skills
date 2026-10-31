@@ -83,7 +83,7 @@ class LiveLog:
 
     def _note_session(self, sid: Any) -> None:
         # Machine-parseable, emitted once, as early as the harness reveals the id.
-        # Parent (/let-them-cook) greps `^SESSION=` to build the handoff chain.
+        # Parents grep `^SESSION=` to resume an exact session.
         if self.session_id is not None or not isinstance(sid, str) or not sid.strip():
             return
         self.session_id = sid.strip()

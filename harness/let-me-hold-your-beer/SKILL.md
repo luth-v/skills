@@ -10,18 +10,18 @@ argument-hint: "[STAGE=driverKind model [effort] | VISUALIZE=off | GATE=auto|ass
 
 # Let Me Hold Your Beer
 
-Hold is Cook's T3 Code sibling. The plan is already grilled, so Hold never runs
-`/grilling`; it starts from a handoff and runs every stage as a fresh T3
+Beer is the post-grill pipeline. The plan is already grilled, so Beer never
+runs `/grilling`; it starts from a handoff and runs every stage as a fresh T3
 delegated task (`delegate_task`), on any provider T3 offers.
 
 **The parent orchestrates:** the parent alone spawns stages and never implements.
-A stage agent implements, reviews, or fixes. It never runs this skill, advances a
+A stage agent implements, reviews, fixes, or visualizes. It never runs this skill, advances a
 stage, or takes the Human gate. Every stage prompt carries the **stage clause**:
 `no nested agents and no T3 orchestration tools (delegate_task, task_*,
 t3_thread_*, create_threads, schedule_task)`.
 
-Hold requires T3 Code. Without the `t3-code` tools (`orchestrator_capabilities`,
-`delegate_task`), stop and tell the user to use Cook.
+Beer requires T3 Code. Without the `t3-code` tools (`orchestrator_capabilities`,
+`delegate_task`), stop and tell the user to run it from a T3 Code thread.
 
 ## Defaults (invoke lines override)
 
@@ -33,7 +33,7 @@ Hold requires T3 Code. Without the `t3-code` tools (`orchestrator_capabilities`,
 | `FIX`            | `claudeAgent claude-opus-5-5 medium`                  |
 | `VISUALIZE`      | `claudeAgent claude-opus-5-5 xhigh`, or `off` to skip |
 
-These mirror Cook's Defaults. Shape: `driverKind model [effort]`, where
+Shape: `driverKind model [effort]`, where
 `driverKind` is a T3 provider driver (`claudeAgent`, `codex`, `opencode`, …).
 
 ```
@@ -54,12 +54,12 @@ Run keys:
 - `GATE=auto|assume` — the Human gate mode. `auto` (default) or `assume`;
   anything else → stop and ask.
 - `DRAFT=yes` — Visualize opens the PR as a draft.
-- `WORKSPACE=/abs/path` — the checkout the whole Hold works in. Default: the
+- `WORKSPACE=/abs/path` — the checkout the whole Beer works in. Default: the
   repo root of the parent's cwd.
 
 ## Spawning a stage
 
-1. **Resolve the instance.** Call `orchestrator_capabilities` once per Hold. For
+1. **Resolve the instance.** Call `orchestrator_capabilities` once per Beer. For
    the stage's `driverKind`: the parent's own instance when its driver matches,
    else the only instance with that driver, else stop and ask which one.
 2. **Map effort** onto the model's advertised effort option (`effort` on Claude,
@@ -132,8 +132,8 @@ Each step below lists what "done" looks like. Move on when it holds.
 
 4. **IMPLEMENTATION.** Before spawning, if the handoff has no `BASE:` line,
    record `BASE: $(git -C "$WORKSPACE" rev-parse HEAD)` in it (plus
-   `BASE_DIRTY: yes` when WORKSPACE already had changes). Then spawn. The prompt must say: you are the
-   implementer; edit code yourself; the stage clause; do not run this skill;
+   `BASE_DIRTY: yes` when WORKSPACE already had changes). Then spawn. The
+   prompt must say: you are the implementer; edit code yourself; the stage clause; do not run this skill;
    scope is the handoff only; an open question means stop and report it.
    Done when the implementer reports finished work within handoff scope, with
    every open question surfaced or an explicit "none".
@@ -182,5 +182,5 @@ Each step below lists what "done" looks like. Move on when it holds.
    Done when the user has the path, the result, and the PR URL when Visualize
    ran.
 
-A stage failure stops the Hold: note the failure on the handoff and report it
+A stage failure stops the Beer: note the failure on the handoff and report it
 without retrying.

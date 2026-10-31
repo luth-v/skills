@@ -1,5 +1,7 @@
 # Hold runs on T3 Code
 
+> Sibling rule superseded by ADR-0005: Cook is archived, and Hold is now called Beer.
+
 Supersedes ADR-0003. Hold (`/let-me-hold-your-beer`) now spawns every stage as a fresh T3 Code delegated task (`delegate_task`) instead of a Cursor `Task` subagent. ADR-0003 rejected a "parent-product Hold" because each product needs its own defaults table and spawn API; T3 is the one parent whose native spawn already reaches every provider (Claude, Codex, OpenCode, …) with per-task model and effort, so a single table and API covers the cross-provider hops that used to need Cook's `run.sh` Harnesses. Cook stays the pipeline for parents outside T3.
 
 ## Considered options

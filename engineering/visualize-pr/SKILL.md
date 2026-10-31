@@ -7,7 +7,7 @@ argument-hint: "[--draft] [HANDOFF=/path]"
 
 # /visualize-pr
 
-Turn the current work into a PR a human can review fast: a rich body, an interactive **explainer** page that opens on a motion graphic, and (after a Cook or Hold) the published handoff for the reviewer's agent.
+Turn the current work into a PR a human can review fast: a rich body, an interactive **explainer** page that opens on a motion graphic, and (after a Beer) the published handoff for the reviewer's agent.
 
 ## Platform
 
@@ -21,7 +21,7 @@ The platform file owns the hero, asset hosting, the publisher, and the PR comman
 ## Flow
 
 1. **Find the handoff.** Use `HANDOFF=/path`, else a handoff path mentioned in this conversation. None found → skip it; never guess one from disk. Work in the handoff's `WORKSPACE:` when it has one, else the repo root of the cwd. Done when the handoff and the workspace are bound, or there is no handoff.
-2. **Commit.** Runs when the handoff has a `BASE:` line (a Cook or Hold run) and the workspace has changes since `BASE`. With no `BASE:` line, use the branch as it is.
+2. **Commit.** Runs when the handoff has a `BASE:` line (a Beer run) and the workspace has changes since `BASE`. With no `BASE:` line, use the branch as it is.
    - `BASE_DIRTY: yes` with no `BASE_DIRTY_DECISION:` line → commit nothing. Ask the user how to handle the earlier changes (a pipeline parent records that answer before it spawns this stage). A `BASE_DIRTY_DECISION:` line → follow it.
    - On the default branch or a detached HEAD, first `git switch -c <branch>`, named from the handoff title (kebab-case, ≤ 40 chars).
    - Stage the pipeline's changes path by path: `git diff --name-only --no-renames <BASE>` (so a rename stages both its old and new path) plus the untracked (`??`) files from `git status --porcelain --untracked-files=all` (one entry per file, so every new file inside a new directory passes the filter below), each through `git add -- <path>`. Leave out secrets and build artefacts, and name them in the report.
@@ -98,7 +98,7 @@ Drop the reviewer-agents block when there is no handoff, and each reviewer-note 
 
 ### Reviewer notes
 
-The handoff's own headings feed the body: `### Assumed decisions` and `### Leftovers` become visible sections after Merge Danger, so the reviewer settles what no human confirmed. `### Seen, not acted on` and `### Deferred architecture candidates` go in the collapsed block (plain `###` sections on Bitbucket). Hold and Cook pass only `HANDOFF=`; this is the one place that knows these headings.
+The handoff's own headings feed the body: `### Assumed decisions` and `### Leftovers` become visible sections after Merge Danger, so the reviewer settles what no human confirmed. `### Seen, not acted on` and `### Deferred architecture candidates` go in the collapsed block (plain `###` sections on Bitbucket). Beer passes only `HANDOFF=`; this is the one place that knows these headings.
 
 ### Summary
 
