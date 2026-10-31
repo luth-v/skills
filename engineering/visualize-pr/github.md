@@ -4,7 +4,7 @@ The default platform: the body itself is rich.
 
 ## Hero
 
-A single animated SVG that tells the change as a story in a few seconds, with `alt` text that says the same story in words:
+The explainer's opening motion graphic (see [`explainer.md`](explainer.md)), the same `hero.svg` file, hosted on the gist, with `alt` text that says the same story in words:
 
 ```html
 <p align="center">
@@ -15,8 +15,6 @@ A single animated SVG that tells the change as a story in a few seconds, with `a
   <b><a href="<explainer link>">▶ Open the interactive explainer</a></b>
 </p>
 ```
-
-With `--video`, add `<b><a href="<video link>">🎬 Watch the video</a></b> ·` before the explainer link.
 
 GitHub serves the SVG through an image proxy: CSS and SMIL animation play, scripts and external fonts or images do not. Keep it self-contained, legible on light and dark backgrounds, and wrap the motion in `@media (prefers-reduced-motion: no-preference)`.
 
@@ -36,17 +34,15 @@ A secret gist is unlisted: absent from your profile and search, readable by anyo
 
 - Create: `gh gist create --desc "<repo>#<branch> PR assets" hero.svg` (secret by default). Record the gist ID in the marker.
 - Update text files: `gh gist edit <id> -f hero.svg <path>`, or `-a <path>` to add one.
-- Binary files (screenshots, the video) need git, because `gh gist` takes text only:
+- Binary files (screenshots) need git, because `gh gist` takes text only:
 
   ```bash
-  git clone https://gist.github.com/<id>.git /tmp/create-pr/gist-<id>
-  cp shot-before.png shot-after.png /tmp/create-pr/gist-<id>/
-  git -C /tmp/create-pr/gist-<id> add -A && git -C /tmp/create-pr/gist-<id> commit -m assets && git -C /tmp/create-pr/gist-<id> push
+  git clone https://gist.github.com/<id>.git /tmp/visualize-pr/gist-<id>
+  cp shot-before.png shot-after.png /tmp/visualize-pr/gist-<id>/
+  git -C /tmp/visualize-pr/gist-<id> add -A && git -C /tmp/visualize-pr/gist-<id> commit -m assets && git -C /tmp/visualize-pr/gist-<id> push
   ```
 
 - Embed with `https://gist.githubusercontent.com/<user>/<id>/raw/<file>`. With no commit SHA in the URL it always serves the latest push (cached for a few minutes), so an Edit never needs a body change.
-
-A video's raw URL downloads rather than plays; link it, with the hero or a still as the thumbnail.
 
 ## Publisher
 
@@ -54,6 +50,6 @@ The `artifacts` skill: `publish --title "<repo> #<n>: <title>" <abs path>` for a
 
 ## PR commands
 
-- Create: `gh pr create --title "<title>" --body-file /tmp/create-pr/<repo>-<branch>/body.md --base <base>`.
+- Create: `gh pr create --title "<title>" --body-file /tmp/visualize-pr/<repo>-<branch>/body.md --base <base>`, plus `--draft` when the skill was invoked with `--draft`.
 - Update: `gh pr edit <n> --title "<title>" --body-file <same>`.
 - Read the marker: `gh pr view --json body -q .body`.

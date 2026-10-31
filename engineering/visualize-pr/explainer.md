@@ -8,7 +8,7 @@ A single self-contained `.html` file: inline CSS, inline SVG, inline JS, images 
 
 Order the page the way a reviewer thinks:
 
-1. **The story**: the hero animation and the one-line summary.
+1. **The story**: an autoplaying motion graphic of the before/after flow, then the one-line summary. Draw it once, as a CSS/SMIL SVG with no script: on GitHub the same file is the body hero (via the gist), inlined here at the top; on Bitbucket it lives only here.
 2. **What changed**: the visuals from `SKILL.md`, each with a heading that states its point.
 3. **Evidence**: the same real proof as the body, screenshots at full size.
 4. **Merge danger**: the blast radius drawn, if a picture helps.

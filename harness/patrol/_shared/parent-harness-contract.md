@@ -1,6 +1,6 @@
 # Parent–harness contract
 
-Shared rules for how any parent agent (including `/let-them-cook` and `/hunter`) talks to a harness
+Shared rules for how any parent agent (including `/let-them-cook` and `/patrol`) talks to a harness
 CLI runner. Reference doc, not a skill — nothing here loads on its own.
 
 Installed path: `<skill>/_shared/parent-harness-contract.md`
@@ -42,8 +42,8 @@ unknown flag (exit 2, fails closed) but silently ignores an unknown env var. The
 holds for `--edit-only` and `<HARNESS>_SUBAGENT_EDIT_ONLY=1`.
 
 Pass `--cd` with the workspace root (or a tighter scope the user named) for codex,
-cursor, and opencode. Claude Code resolves its own working directory, so `claude`
-takes no `--cd`.
+cursor, and opencode. claude takes no `--cd`: run its `run.sh` from the workspace
+(`cd "$WORKSPACE" && …`); its `--read-only` / `--edit-only` scope is the process cwd.
 
 Stdin is required — every runner reads the prompt from the pipe. Give the subagent a
 self-contained prompt: it sees no parent chat, so paste the paths, diff summary, and
