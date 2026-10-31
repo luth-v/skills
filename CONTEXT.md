@@ -29,7 +29,7 @@ The attended Patrol mode, run by a human and the default. Also weighs architectu
 _Avoid_: dedicated patrol, manual mode, deep patrol
 
 **Guard**:
-The agent in a Patrol that roams the code, follows Leads, and decides which one is worth a Report.
+One of the agents in a Patrol (five by default, in parallel) that roams the code from its own random start file, follows Leads, and decides which one is worth a Report.
 _Avoid_: hunter, scout, scanner
 
 **Lead**:
@@ -37,7 +37,7 @@ Something suspicious the Guard is still checking. Most Leads are dropped; none l
 _Avoid_: candidate, finding, take
 
 **Report**:
-A Lead the Guard has checked enough to escalate to HQ. It carries a scenario, the rule it breaks, and the cited code.
+A Lead a Guard has checked enough to escalate to HQ. HQ gets every Guard's Report and investigates the strongest. It carries a scenario, the rule it breaks, and the cited code.
 _Avoid_: take, ticket, finding
 
 **HQ**:

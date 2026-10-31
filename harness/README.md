@@ -30,8 +30,8 @@ It ends on a Visualize stage that runs `/visualize-pr` (in `engineering/`) to
 commit the reviewed work and open a visual PR; `VISUALIZE=off` skips it.
 `GATE=assume` never pauses at the Human gate and leaves each pre-review call in the
 handoff as an Assumed decision for the PR's reviewer.
-`/patrol` runs one defect patrol per invoke, in T3 Code only: its Guard and HQ
-spawn as T3 delegated tasks, and a Night patrol then runs Beer with
+`/patrol` runs one defect patrol per invoke, in T3 Code only: its Guards
+(`GUARDS=`, default 5; `LEADS=` per Guard, default 15) and HQ spawn as T3 delegated tasks, and a Night patrol then runs Beer with
 `GATE=assume DRAFT=yes`.
 
 ### skills.sh install

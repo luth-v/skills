@@ -37,8 +37,8 @@ Code and expects `thermo-nuclear-code-quality-review`,
 harness skills. It ends on a Visualize stage that runs `/visualize-pr` (skip it
 with `VISUALIZE=off`), and `GATE=assume` never pauses at the Human gate, recording
 each pre-review call as an Assumed decision for the PR's reviewer.
-`/patrol` runs one defect patrol in T3 Code on a detached worktree: a Guard
-follows Leads, HQ confirms or dismisses one Report, and then a Night patrol
+`/patrol` runs one defect patrol in T3 Code on a detached worktree: five Guards
+(by default) follow Leads in parallel, HQ confirms or dismisses the strongest Report, and then a Night patrol
 (`/patrol night`) runs Beer to a draft PR while an Inspection (the default)
 reports in chat.
 `/visualize-pr` commits the reviewed work, writes a visual PR body, publishes an
