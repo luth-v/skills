@@ -18,13 +18,7 @@ Install one harness skill:
 npx skills add luth-v/skills --skill claude -g -y
 ```
 
-Install `/bruh`:
-
-```bash
-npx skills add luth-v/skills --skill bruh -g -y
-```
-
-`/bruh` is a standalone skill. `let-me-hold-your-beer` (Beer) runs the post-grill
+`let-me-hold-your-beer` (Beer) runs the post-grill
 pipeline as fresh T3 Code delegated tasks and does not need the CLI harness skills.
 It ends on a Visualize stage that runs `/visualize-pr` (in `engineering/`) to
 commit the reviewed work and open a visual PR; `VISUALIZE=off` skips it.
@@ -74,8 +68,6 @@ npx skills add /path/to/skills --skill claude -g -y
 ## Layout
 
 ```
-misc/
-  bruh/             /bruh plain-language restatement skill
 harness/
   README.md          ← this file
   sync-shared.sh     regenerate each skill's self-contained `_shared/` runtime

@@ -2,14 +2,14 @@
 
 Reusable skills for Claude Code, Codex, Cursor, and OpenCode, including
 cross-harness CLI runners, the `let-me-hold-your-beer` post-grill pipeline
-(Beer), `/patrol`, `/visualize-pr`, and `/bruh`.
+(Beer), `/patrol`, and `/visualize-pr`.
 
 ## Install with the skills CLI
 
 Install a single skill globally:
 
 ```bash
-npx skills add luth-v/skills --skill bruh -g -y
+npx skills add luth-v/skills --skill claude -g -y
 ```
 
 Install all skills globally:
@@ -27,8 +27,6 @@ Available skills:
 - `let-me-hold-your-beer`
 - `patrol`
 - `visualize-pr`
-- `bruh`
-- `wtf`
 
 Each CLI harness skill is self-contained and requires its corresponding CLI to be
 installed and authenticated. `let-me-hold-your-beer` (Beer) runs only inside T3
@@ -45,14 +43,13 @@ reports in chat.
 explainer (via `artifacts` on GitHub, a canvas-style publisher on Bitbucket), and
 opens or updates the PR.
 `archived/let-them-cook` (Cook) is archived and not maintained; see ADR-0005.
-`/bruh` is a standalone plain-language restatement skill.
 
 ## Install from a local checkout
 
-Install `/bruh` from this checkout:
+Install `/claude` from this checkout:
 
 ```bash
-npx skills add . --skill bruh -g -y
+npx skills add . --skill claude -g -y
 ```
 
 Install all skills from this checkout:
