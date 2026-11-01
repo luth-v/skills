@@ -29,7 +29,7 @@ Beer requires T3 Code. Without the `t3-code` tools (`orchestrator_capabilities`,
 | ---------------- | ----------------------------------------------------- |
 | `PRE_REVIEW`     | `claudeAgent claude-opus-5-5 xhigh`                   |
 | `IMPLEMENTATION` | `claudeAgent claude-opus-5-5 medium`                  |
-| `POST_REVIEW`    | `claudeAgent claude-opus-5-5 xhigh`                   |
+| `POST_REVIEW`    | `codex gpt-6.1-sol max`                               |
 | `FIX`            | `claudeAgent claude-opus-5-5 medium`                  |
 | `VISUALIZE`      | `claudeAgent claude-opus-5-5 xhigh`, or `off` to skip |
 
