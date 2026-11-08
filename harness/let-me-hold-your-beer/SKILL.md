@@ -34,7 +34,8 @@ Beer requires T3 Code. Without the `t3-code` tools (`orchestrator_capabilities`,
 | `VISUALIZE`      | `claudeAgent claude-opus-5-5 xhigh`, or `off` to skip |
 
 Shape: `driverKind model [effort]`, where
-`driverKind` is a T3 provider driver (`claudeAgent`, `codex`, `opencode`, …).
+`driverKind` is a T3 provider driver (`claudeAgent`, `cursor`, `codex`,
+`opencode`, …).
 
 ```
 /let-me-hold-your-beer
@@ -60,10 +61,13 @@ Run keys:
 ## Spawning a stage
 
 1. **Resolve the instance.** Call `orchestrator_capabilities` once per Beer. For
-   the stage's `driverKind`: the parent's own instance when its driver matches,
-   else the only instance with that driver, else stop and ask which one.
-2. **Map effort** onto the model's advertised effort option (`effort` on Claude,
-   `reasoningEffort` on Codex, `variant` on OpenCode). A model with no effort
+   a `claudeAgent` stage, the handoff's `CLAUDE_INSTANCE:` line wins. Without one:
+   the Claude account of WORKSPACE's folder, per *Claude account for subagents*
+   in `~/.agents/AGENTS.md` (`claudeAgent_personal` when it names none). For every
+   other `driverKind`: the parent's own instance when its driver matches, else
+   the only instance with that driver, else stop and ask which one.
+2. **Map effort** onto the model's advertised effort option (`effort` on Claude and
+   Cursor, `reasoningEffort` on Codex, `variant` on OpenCode). A model with no effort
    option runs without one.
 3. **Announce** `fresh spawn <instance> <model> <effort> for <STAGE>`, or
    `… (no effort control) …` when step 2 dropped it.
@@ -74,6 +78,11 @@ Run keys:
 
 T3 is the model enforcement point: a rejected provider, model, or option is a
 stage failure, not a fallback.
+
+**Usage-limit fallback** follows *Claude account for subagents* in
+`~/.agents/AGENTS.md`. To keep the switch for the rest of the Beer, record
+`CLAUDE_INSTANCE: claudeAgent_personal` in the handoff before the respawn, so
+every later `claudeAgent` stage and any `RESUME` uses personal.
 
 Every stage prompt names its skills with this **loading rule**: load `/<skill>`
 with your skill tool; if it is not available, read
@@ -183,4 +192,4 @@ Each step below lists what "done" looks like. Move on when it holds.
    ran.
 
 A stage failure stops the Beer: note the failure on the handoff and report it
-without retrying.
+without retrying. The Usage-limit fallback is the one exception.
