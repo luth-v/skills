@@ -28,9 +28,9 @@ Beer requires T3 Code. Without the `t3-code` tools (`orchestrator_capabilities`,
 | Stage            | Value                                                 |
 | ---------------- | ----------------------------------------------------- |
 | `PRE_REVIEW`     | `claudeAgent claude-fable-5-2 high`                   |
-| `IMPLEMENTATION` | `claudeAgent claude-fable-5-2 low`                    |
+| `IMPLEMENTATION` | `claudeAgent claude-opus-5-5 high`                    |
 | `POST_REVIEW`    | `codex gpt-6.1-sol max`                               |
-| `FIX`            | `claudeAgent claude-fable-5-2 low`                    |
+| `FIX`            | `claudeAgent claude-opus-5-5 high`                    |
 | `VISUALIZE`      | `claudeAgent claude-opus-5-5 xhigh`, or `off` to skip |
 
 Shape: `driverKind model [effort]`, where
