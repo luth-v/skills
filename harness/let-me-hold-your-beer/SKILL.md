@@ -29,17 +29,17 @@ Beer requires T3 Code. Without the `t3-code` tools (`orchestrator_capabilities`,
 | ---------------- | ----------------------------------------------------- |
 | `PRE_REVIEW`     | `claudeAgent claude-fable-5-2 high`                   |
 | `IMPLEMENTATION` | `claudeAgent claude-opus-5-5 high`                    |
-| `POST_REVIEW`    | `codex gpt-6.1-sol max`                               |
+| `POST_REVIEW`    | `antigravity gemini-4-neon high`                      |
 | `FIX`            | `claudeAgent claude-opus-5-5 high`                    |
 | `VISUALIZE`      | `claudeAgent claude-opus-5-5 xhigh`, or `off` to skip |
 
 Shape: `driverKind model [effort]`, where
-`driverKind` is a T3 provider driver (`claudeAgent`, `cursor`, `codex`,
-`opencode`, …).
+`driverKind` is a T3 provider driver (`claudeAgent`, `antigravity`, `cursor`,
+`codex`, `opencode`, …).
 
 ```
 /let-me-hold-your-beer
-IMPLEMENTATION=codex gpt-6.1-sol high
+IMPLEMENTATION=antigravity gemini-4-neon high
 HANDOFF=/path/to/handoff.md
 RESUME=implementation
 ```
@@ -67,8 +67,8 @@ Run keys:
    other `driverKind`: the parent's own instance when its driver matches, else
    the only instance with that driver, else stop and ask which one.
 2. **Map effort** onto the model's advertised effort option (`effort` on Claude and
-   Cursor, `reasoningEffort` on Codex, `variant` on OpenCode). A model with no effort
-   option runs without one.
+   Cursor, `reasoningEffort` on Codex, `thought_level` on Antigravity, `variant` on
+   OpenCode). A model with no effort option runs without one.
 3. **Announce** `fresh spawn <instance> <model> <effort> for <STAGE>`, or
    `… (no effort control) …` when step 2 dropped it.
 4. **Spawn** with `delegate_task`, `mode: async`, a fresh `clientRequestId` per
