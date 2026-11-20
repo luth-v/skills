@@ -63,7 +63,11 @@ Run keys:
 1. **Resolve the instance.** Call `orchestrator_capabilities` once per Beer. For
    a `claudeAgent` stage, the handoff's `CLAUDE_INSTANCE:` line wins. Without one:
    the Claude account of WORKSPACE's folder, per *Claude account for subagents*
-   in `~/.agents/AGENTS.md` (`claudeAgent_personal` when it names none). For every
+   in `~/.agents/AGENTS.md` (the default `claudeAgent` when it names none).
+   **Fable exception:** a `claude-fable-*` model always runs on the default
+   `claudeAgent`, whatever the handoff or folder names. The `claudeAgent_mkr`
+   and `claudeAgent_amy` seats have no Fable access, even though
+   `orchestrator_capabilities` lists it for them. For every
    other `driverKind`: the parent's own instance when its driver matches, else
    the only instance with that driver, else stop and ask which one.
 2. **Map effort** onto the model's advertised effort option (`effort` on Claude and
@@ -81,8 +85,8 @@ stage failure, not a fallback.
 
 **Usage-limit fallback** follows *Claude account for subagents* in
 `~/.agents/AGENTS.md`. To keep the switch for the rest of the Beer, record
-`CLAUDE_INSTANCE: claudeAgent_personal` in the handoff before the respawn, so
-every later `claudeAgent` stage and any `RESUME` uses personal.
+`CLAUDE_INSTANCE: claudeAgent` in the handoff before the respawn, so
+every later `claudeAgent` stage and any `RESUME` uses the default instance.
 
 Every stage prompt names its skills with this **loading rule**: load `/<skill>`
 with your skill tool; if it is not available, read
