@@ -26,7 +26,8 @@ commit the reviewed work and open a visual PR; `VISUALIZE=off` skips it.
 handoff as an Assumed decision for the PR's reviewer.
 `/patrol` runs one defect patrol per invoke, in T3 Code only: its Guards
 (`GUARDS=`, default 5; `LEADS=` per Guard, default 15) and HQ spawn as T3 delegated tasks, and a Night patrol then runs Beer with
-`GATE=assume DRAFT=yes`.
+`GATE=assume`, opening a draft PR unless `DRAFT=no`. Two or more `REPO=` keys make a
+Joint patrol across those repos, with one linked PR per repo the fix needs.
 
 ### skills.sh install
 

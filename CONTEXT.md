@@ -21,8 +21,16 @@ A single run that roams a repo looking for defects, follows Leads, and escalates
 _Avoid_: hunter, scan, audit, sweep, loop
 
 **Night patrol**:
-The unattended Patrol mode, run on a schedule. Defects only; a confirmed Report runs a Beer that ends in a draft PR, never a merge. Must be asked for by name.
+The unattended Patrol mode, run on a schedule. Defects only; a confirmed Report runs a Beer that ends in a PR (a draft by default), never a merge. Must be asked for by name.
 _Avoid_: light patrol, scheduled mode, auto mode
+
+**Joint patrol**:
+A Patrol across two or more repos in one run, one worktree each, so a Lead can cross the contract between them. A confirmed Report names the repos its fix changes, in merge order; a Night patrol ships one PR per repo, linked to each other.
+_Avoid_: multi-repo patrol, cross-repo patrol
+
+**Seam Guard**:
+A Guard of a Joint patrol whose start file sits on the contract between the repos, so every run checks both sides of it.
+_Avoid_: contract guard, bridge guard
 
 **Inspection**:
 The attended Patrol mode, run by a human and the default. Also weighs architecture and product changes; a confirmed Report goes back to the human for grilling and never starts a pipeline on its own.

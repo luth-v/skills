@@ -37,8 +37,9 @@ with `VISUALIZE=off`), and `GATE=assume` never pauses at the Human gate, recordi
 each pre-review call as an Assumed decision for the PR's reviewer.
 `/patrol` runs one defect patrol in T3 Code on a detached worktree: five Guards
 (by default) follow Leads in parallel, HQ confirms or dismisses the strongest Report, and then a Night patrol
-(`/patrol night`) runs Beer to a draft PR while an Inspection (the default)
-reports in chat.
+(`/patrol night`) runs Beer to a PR (a draft unless `DRAFT=no`) while an Inspection
+(the default) reports in chat. A Joint patrol (`REPO=` twice or more) roams several
+repos at once and ships one linked PR per repo the fix needs.
 `/visualize-pr` commits the reviewed work, writes a visual PR body, publishes an
 explainer (via `artifacts` on GitHub, a canvas-style publisher on Bitbucket), and
 opens or updates the PR.
